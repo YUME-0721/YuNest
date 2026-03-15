@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/* NOTE: 全局字体和基础样式设定 */
+:root {
+  --color-accent: #ec5b13;
+  --color-accent-light: #ff7a3d;
+  --color-accent-dark: #c94a0e;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* NOTE: Tailwind v4 preflight 已包含合理的 CSS 重置，此处不再重复设置 margin/padding */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* NOTE: 自定义滚动条——极简风格，与深色主题匹配 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* NOTE: 入场动画关键帧 */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(236, 91, 19, 0.0);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(236, 91, 19, 0.15);
+  }
+}
+
+@keyframes bg-drift {
+  0% { transform: scale(1.05) translate(0, 0); }
+  25% { transform: scale(1.08) translate(-1%, -0.5%); }
+  50% { transform: scale(1.05) translate(0, -1%); }
+  75% { transform: scale(1.08) translate(1%, -0.5%); }
+  100% { transform: scale(1.05) translate(0, 0); }
+}
+
+@keyframes bg-fade-in {
+  from { opacity: 0; }
+  to { opacity: 0.8; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* NOTE: 工具类动画 */
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out both;
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.5s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.7s ease-out both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-bg-drift {
+  animation: bg-drift 30s ease-in-out infinite;
+}
+
+.animate-bg-fade-in {
+  animation: bg-fade-in 1.5s ease-out forwards;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* NOTE: 玻璃拟态效果 */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* NOTE: 搜索栏聚焦光晕效果 */
+.search-glow:focus-within {
+  box-shadow:
+    0 0 0 1px rgba(236, 91, 19, 0.3),
+    0 0 30px rgba(236, 91, 19, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* NOTE: 后台管理页面滚动条样式覆盖 */
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
