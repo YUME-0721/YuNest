@@ -4,7 +4,7 @@
   <p>一个现代、美观且高度可定制的个人静态导航与书签管理工具。</p>
 </div>
 
-![Home Screenshot](screenshots/home.png)
+![Home Screenshot](screenshots/homepage.png)
 
 ## ✨ 特性 (Features)
 
