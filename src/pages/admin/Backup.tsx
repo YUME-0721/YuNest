@@ -5,16 +5,52 @@
 
 import React, { useRef, useState } from 'react';
 import { useData } from '../../context/DataContext.tsx';
-import { UploadCloud, Download, AlertTriangle, CheckCircle, FileJson, Database } from 'lucide-react';
+import { UploadCloud, Download, AlertTriangle, CheckCircle, FileJson, Database, Cloud } from 'lucide-react';
 
 export default function Backup() {
-  const { state, importData, exportData } = useData();
+  const { state, importData, exportData, syncToRepo, fetchFromRepo, updateSettings } = useData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [importMessage, setImportMessage] = useState('');
 
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [syncMessage, setSyncMessage] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // 数据统计
   const totalBookmarks = state.categories.reduce((acc, cat) => acc + cat.bookmarks.length, 0);
+
+  const handlePushToRepo = async () => {
+    try {
+      setIsSyncing(true);
+      setSyncStatus('idle');
+      await syncToRepo();
+      setSyncStatus('success');
+      setSyncMessage('成功推送到仓库 (yunest_data.json)');
+    } catch (e: any) {
+      setSyncStatus('error');
+      setSyncMessage(e.message || '推送失败');
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    }
+  };
+
+  const handlePullFromRepo = async () => {
+    try {
+      setIsSyncing(true);
+      setSyncStatus('idle');
+      await fetchFromRepo();
+      setSyncStatus('success');
+      setSyncMessage('成功从仓库拉取并覆盖本地数据');
+    } catch (e: any) {
+      setSyncStatus('error');
+      setSyncMessage(e.message || '拉取失败');
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncStatus('idle'), 3000);
+    }
+  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -163,6 +199,73 @@ export default function Backup() {
               ref={fileInputRef}
               onChange={handleFileChange}
             />
+          </div>
+        </section>
+
+        {/* 云端同步 (GitHub Gist) */}
+        <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <Cloud className="w-6 h-6 text-[#ec5b13]" />
+            <h3 className="text-xl font-bold">云端同步</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-semibold mb-2">GitHub Token</label>
+              <input
+                type="password"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
+                placeholder="ghp_xxx (需 gist 权限)"
+                value={state.settings.githubToken || ''}
+                onChange={(e) => updateSettings({ githubToken: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">GitHub 仓库</label>
+              <input
+                type="text"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
+                placeholder="例如: YUME-0721/YuNest"
+                value={state.settings.githubRepo || ''}
+                onChange={(e) => updateSettings({ githubRepo: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {syncStatus !== 'idle' && (
+            <div
+              className={`flex items-center gap-2 p-4 rounded-xl mb-6 text-sm font-medium animate-fade-in ${
+                syncStatus === 'success'
+                  ? 'bg-green-50 text-green-700 border border-green-100'
+                  : 'bg-red-50 text-red-700 border border-red-100'
+              }`}
+            >
+              {syncStatus === 'success' ? (
+                <CheckCircle className="w-5 h-5 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+              )}
+              {syncMessage}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={handlePushToRepo}
+              disabled={isSyncing || !state.settings.githubToken || !state.settings.githubRepo}
+              className="py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <UploadCloud className="w-4 h-4" />
+              推送到云端 (Push)
+            </button>
+            <button
+              onClick={handlePullFromRepo}
+              disabled={isSyncing || !state.settings.githubToken || !state.settings.githubRepo}
+              className="py-3 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4" />
+              从云端拉取 (Pull)
+            </button>
           </div>
         </section>
 

@@ -35,6 +35,8 @@ export interface Settings {
   glassEffect: boolean;
   darkMask: boolean;
   searchEngine: string;
+  githubToken?: string;
+  githubRepo?: string; // 格式: owner/repo
 }
 
 export interface AppState {
@@ -75,33 +77,20 @@ const defaultState: AppState = {
     glassEffect: true,
     darkMask: true,
     searchEngine: 'https://www.google.com/search?q=',
+    githubToken: '',
+    githubRepo: '',
   },
   categories: [
     {
       id: 'c1',
-      title: '办公效率',
-      icon: 'Briefcase',
+      title: '工具',
+      icon: 'Wrench',
       bookmarks: [
-        { id: 'b1', title: 'Gmail', url: 'https://mail.google.com', description: '邮件通讯', icon: 'Mail' },
-        { id: 'b2', title: 'Notion', url: 'https://notion.so', description: '协作空间', icon: 'FileText' },
-      ],
-    },
-    {
-      id: 'c2',
-      title: '社交娱乐',
-      icon: 'Coffee',
-      bookmarks: [
-        { id: 'b3', title: 'Twitter', url: 'https://twitter.com', description: '资讯网络', icon: 'Twitter' },
-        { id: 'b4', title: 'YouTube', url: 'https://youtube.com', description: '视频影音', icon: 'Youtube' },
-      ],
-    },
-    {
-      id: 'c3',
-      title: '开发者工具',
-      icon: 'Code',
-      bookmarks: [
-        { id: 'b5', title: 'GitHub', url: 'https://github.com', description: '代码托管', icon: 'Github' },
-        { id: 'b6', title: 'StackOverflow', url: 'https://stackoverflow.com', description: '技术社区', icon: 'Layers' },
+        { id: 'b1', title: 'GitHub', url: 'https://github.com', description: '代码托管与协作', icon: 'Github' },
+        { id: 'b2', title: 'Cloudflare', url: 'https://www.cloudflare.com', description: '静态托管与 CDN', icon: 'Cloud' },
+        { id: 'b3', title: 'Spaceship', url: 'https://www.spaceship.com', description: '域名注册与管理', icon: 'Rocket' },
+        { id: 'b4', title: 'Stitch', url: 'https://stitch.mongodb.com', description: '无服务器后端服务', icon: 'Cpu' },
+        { id: 'b5', title: 'AI Studio', url: 'https://aistudio.google.com', description: 'Gemini AI 开发', icon: 'Sparkles' },
       ],
     },
   ],
@@ -120,6 +109,8 @@ interface DataContextType {
   reorderBookmarks: (categoryId: string, fromIndex: number, toIndex: number) => void;
   importData: (data: AppState) => void;
   exportData: () => void;
+  syncToRepo: (token?: string, repo?: string) => Promise<boolean>;
+  fetchFromRepo: (token?: string, repo?: string) => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -256,6 +247,84 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     linkElement.click();
   }, [state]);
 
+  const syncToRepo = useCallback(async (tokenOverride?: string, repoOverride?: string) => {
+    const token = tokenOverride || state.settings.githubToken;
+    const repo = repoOverride || state.settings.githubRepo;
+    if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
+
+    const path = 'yunest_data.json';
+    const stateToSave = { 
+      ...state, 
+      settings: { ...state.settings, githubToken: '', githubRepo: '' } 
+    };
+
+    // 1. 尝试获取现有文件的 SHA
+    let sha = '';
+    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json'
+      }
+    });
+    
+    if (getRes.ok) {
+      const existing = await getRes.json();
+      sha = existing.sha;
+    }
+
+    // 2. 执行 PUT 请求 (创建或更新)
+    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github+json'
+      },
+      body: JSON.stringify({
+        message: 'YuNest Data Sync',
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(stateToSave, null, 2)))),
+        sha: sha || undefined
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || '同步到仓库失败');
+    }
+    return true;
+  }, [state]);
+
+  const fetchFromRepo = useCallback(async (tokenOverride?: string, repoOverride?: string) => {
+    const token = tokenOverride || state.settings.githubToken;
+    const repo = repoOverride || state.settings.githubRepo;
+    if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
+
+    const path = 'yunest_data.json';
+    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'Cache-Control': 'no-cache',
+      }
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || '从仓库拉取失败');
+    }
+    const data = await response.json();
+    const content = decodeURIComponent(escape(atob(data.content)));
+    const parsedData = JSON.parse(content);
+    
+    // 恢复本地凭证
+    if (!parsedData.settings) parsedData.settings = {};
+    parsedData.settings.githubToken = token;
+    parsedData.settings.githubRepo = repo;
+    
+    importData(parsedData);
+    return true;
+  }, [importData, state.settings.githubToken, state.settings.githubRepo]);
+
   return (
     <DataContext.Provider
       value={{
@@ -271,6 +340,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         reorderBookmarks,
         importData,
         exportData,
+        syncToRepo,
+        fetchFromRepo,
       }}
     >
       {children}
