@@ -253,13 +253,53 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
 
     const path = 'yunest_data.json';
-    const branch = 'data'; // 固定存储在 data 分支
+    const branch = 'data';
     const stateToSave = { 
       ...state, 
       settings: { ...state.settings, githubToken: '', githubRepo: '' } 
     };
 
-    // 1. 尝试获取现有文件的 SHA (带上 branch 参数)
+    // 1. 确保分支存在，如果不存在则尝试创建
+    const branchRes = await fetch(`https://api.github.com/repos/${repo}/branches/${branch}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!branchRes.ok) {
+      // 获取默认分支
+      const repoRes = await fetch(`https://api.github.com/repos/${repo}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!repoRes.ok) throw new Error('无法访问仓库，请检查 Token 和仓库名');
+      const repoData = await repoRes.json();
+      const defaultBranch = repoData.default_branch;
+
+      // 获取默认分支最新的 SHA
+      const latestRes = await fetch(`https://api.github.com/repos/${repo}/git/refs/heads/${defaultBranch}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!latestRes.ok) throw new Error(`无法获取 ${defaultBranch} 分支状态`);
+      const latestData = await latestRes.json();
+      const latestSha = latestData.object.sha;
+
+      // 创建 data 分支
+      const createBranchRes = await fetch(`https://api.github.com/repos/${repo}/git/refs`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ref: `refs/heads/${branch}`,
+          sha: latestSha
+        })
+      });
+      if (!createBranchRes.ok) {
+        const err = await createBranchRes.json().catch(() => ({}));
+        throw new Error(err.message || '创建 data 分支失败');
+      }
+    }
+
+    // 2. 获取现有文件的 SHA
     let sha = '';
     const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
       headers: { 
@@ -273,7 +313,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       sha = existing.sha;
     }
 
-    // 2. 执行 PUT 请求 (创建或更新，指定 branch)
+    // 3. 执行 PUT 请求
     const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: {
@@ -285,7 +325,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         message: 'YuNest Data Sync',
         content: btoa(unescape(encodeURIComponent(JSON.stringify(stateToSave, null, 2)))),
         sha: sha || undefined,
-        branch: branch // 关键：指定推送到 data 分支
+        branch: branch
       })
     });
 
