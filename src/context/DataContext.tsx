@@ -151,23 +151,29 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return defaultState;
   });
 
+  // 记录初始化时是否存在本地数据，避免自动同步覆盖本地未保存的修改
+  const isFreshStart = React.useRef(!localStorage.getItem('yunest_data'));
+
   useEffect(() => {
     localStorage.setItem('yunest_data', JSON.stringify(state));
   }, [state]);
 
-  // 页面加载时自动从云端同步数据
+  // 仅在初次进入（无本地数据）时自动从云端同步
   useEffect(() => {
+    if (!isFreshStart.current) return;
+    
     const token = state.settings.githubToken || envGithubToken;
     const repo = state.settings.githubRepo || envGithubRepo;
     
     if (token && repo) {
-      // 静默执行拉取同步
+      // 标记已经尝试过初次同步，防止后续触发
+      isFreshStart.current = false;
       fetchFromRepo(token, repo).catch((err) => {
         console.warn('Initial data sync ignored:', err.message);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 仅在根组件挂载时运行一次
+  }, []); 
 
   const updateSettings = useCallback((newSettings: Partial<Settings>) => {
     setState((prev) => ({ ...prev, settings: { ...prev.settings, ...newSettings } }));
