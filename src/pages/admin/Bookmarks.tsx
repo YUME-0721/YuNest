@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { useData, type Category, type Bookmark } from '../../context/DataContext.tsx';
-import { Plus, Edit2, Trash2, FolderOpen, Link as LinkIcon, GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderOpen, Link as LinkIcon, GripVertical, ChevronUp, ChevronDown, LayoutGrid, LayoutList, Eye, EyeOff, Lock } from 'lucide-react';
 
 export default function Bookmarks() {
   const {
@@ -24,12 +24,17 @@ export default function Bookmarks() {
   // 分类模态框状态
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [categoryForm, setCategoryForm] = useState({ title: '', icon: 'Folder' });
+  const [categoryForm, setCategoryForm] = useState<{ title: string; icon: string; layout: 'card' | 'grid'; isHidden: boolean }>({ 
+    title: '', 
+    icon: 'Folder',
+    layout: 'card',
+    isHidden: false
+  });
 
   // 书签模态框状态
   const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [bookmarkForm, setBookmarkForm] = useState({ title: '', url: '', icon: 'Globe', description: '' });
+  const [bookmarkForm, setBookmarkForm] = useState({ title: '', url: '', icon: '', description: '' });
 
   const currentCategory = state.categories.find((c) => c.id === activeCategory);
   const currentCategoryIndex = state.categories.findIndex((c) => c.id === activeCategory);
@@ -44,12 +49,17 @@ export default function Bookmarks() {
     }
     setIsCategoryModalOpen(false);
     setEditingCategory(null);
-    setCategoryForm({ title: '', icon: 'Folder' });
+    setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
   };
 
   const handleEditCategory = (category: Category) => {
     setEditingCategory(category);
-    setCategoryForm({ title: category.title, icon: category.icon });
+    setCategoryForm({ 
+      title: category.title, 
+      icon: category.icon, 
+      layout: category.layout || 'card',
+      isHidden: category.isHidden || false
+    });
     setIsCategoryModalOpen(true);
   };
 
@@ -71,7 +81,7 @@ export default function Bookmarks() {
     }
     setIsBookmarkModalOpen(false);
     setEditingBookmark(null);
-    setBookmarkForm({ title: '', url: '', icon: 'Globe', description: '' });
+    setBookmarkForm({ title: '', url: '', icon: '', description: '' });
   };
 
   const handleEditBookmark = (bookmark: Bookmark) => {
@@ -104,7 +114,7 @@ export default function Bookmarks() {
           id="add-category-btn"
           onClick={() => {
             setEditingCategory(null);
-            setCategoryForm({ title: '', icon: 'Folder' });
+            setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
             setIsCategoryModalOpen(true);
           }}
           className="px-4 py-2.5 bg-[#ec5b13] text-white rounded-xl text-sm font-semibold hover:bg-[#ec5b13]/90 transition-all flex items-center gap-2 shadow-lg shadow-[#ec5b13]/20 self-start sm:self-auto"
@@ -144,6 +154,12 @@ export default function Bookmarks() {
             <h3 className="font-bold text-slate-800 flex items-center gap-2 flex-wrap">
               <FolderOpen className="w-5 h-5 text-[#ec5b13]" />
               {currentCategory.title}
+              {currentCategory.isHidden && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold">
+                  <Lock className="w-2.5 h-2.5" />
+                  隐藏
+                </span>
+              )}
               <div className="flex items-center gap-1 ml-2">
                 <button
                   onClick={() => handleEditCategory(currentCategory)}
@@ -184,7 +200,7 @@ export default function Bookmarks() {
               id="add-bookmark-btn"
               onClick={() => {
                 setEditingBookmark(null);
-                setBookmarkForm({ title: '', url: '', icon: 'Globe', description: '' });
+                setBookmarkForm({ title: '', url: '', icon: '', description: '' });
                 setIsBookmarkModalOpen(true);
               }}
               className="text-[#ec5b13] text-sm font-semibold flex items-center gap-1 hover:underline"
@@ -324,6 +340,65 @@ export default function Bookmarks() {
                   支持 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline">Lucide 图标名</a> 或图片 URL
                 </p>
               </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">展示模式</label>
+                <div className="flex gap-3 mt-1.5">
+                  <button
+                    onClick={() => setCategoryForm({ ...categoryForm, layout: 'card' })}
+                    className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                      categoryForm.layout === 'card'
+                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                    }`}
+                  >
+                    <LayoutList className="w-5 h-5" />
+                    <span className="text-xs font-bold">展开卡片</span>
+                  </button>
+                  <button
+                    onClick={() => setCategoryForm({ ...categoryForm, layout: 'grid' })}
+                    className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                      categoryForm.layout === 'grid'
+                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                    }`}
+                  >
+                    <LayoutGrid className="w-5 h-5" />
+                    <span className="text-xs font-bold">紧凑宫格</span>
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">可见性</label>
+                <div className="flex gap-3 mt-1.5">
+                  <button
+                    onClick={() => setCategoryForm({ ...categoryForm, isHidden: false })}
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                      !categoryForm.isHidden
+                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                    }`}
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span className="text-xs font-bold">公开</span>
+                  </button>
+                  <button
+                    onClick={() => setCategoryForm({ ...categoryForm, isHidden: true })}
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                      categoryForm.isHidden
+                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                    }`}
+                  >
+                    <EyeOff className="w-4 h-4" />
+                    <span className="text-xs font-bold">隐藏</span>
+                  </button>
+                </div>
+                {categoryForm.isHidden && (
+                  <p className="text-[10px] text-slate-400 mt-2 ml-1">
+                    * 隐藏分组仅在管理员 <span className="text-[#ec5b13]">在线认证</span> 后才会显示在该页面。
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
               <button
@@ -383,16 +458,16 @@ export default function Bookmarks() {
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">图标</label>
+                <label className="text-sm font-semibold text-slate-700">图标（可选）</label>
                 <input
                   type="text"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="Globe"
+                  placeholder="Google"
                   value={bookmarkForm.icon}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, icon: e.target.value })}
                 />
                 <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
-                  <p>留空或填写 Globe 使用默认图标，也可填写网站 favicon URL</p>
+                  <p>留空会自动抓取图标，也可填写网站 favicon URL</p>
                   <p>点击 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline font-medium">图标库</a>，跳转到图标库</p>
                 </div>
               </div>

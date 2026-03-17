@@ -18,6 +18,8 @@ export interface Category {
   title: string;
   icon: string;
   bookmarks: Bookmark[];
+  layout?: 'card' | 'grid'; // 'card' 为展开卡片, 'grid' 为紧凑宫格
+  isHidden?: boolean; // 是否为隐藏分组
 }
 
 /**
@@ -126,6 +128,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           ...defaultState,
           ...parsed,
           settings: { ...defaultState.settings, ...parsed.settings },
+          categories: (parsed.categories || []).map((c: any) => ({
+            layout: 'card', 
+            isHidden: false, // 默认旧数据为公开
+            ...c
+          }))
         };
       } catch (e) {
         console.error('Failed to parse saved data', e);

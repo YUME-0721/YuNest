@@ -61,6 +61,7 @@ export default function Home() {
   });
   
   const [isScrolled, setIsScrolled] = useState(false);
+  const isAdmin = useMemo(() => sessionStorage.getItem('yunest_auth') === 'true', []);
 
   // 监听滚动，控制标题显隐
   useEffect(() => {
@@ -280,46 +281,70 @@ export default function Home() {
 
         {/* 书签分组 - 改为垂直排列，内部书签横向排列 */}
         <div className="w-full max-w-7xl flex flex-col gap-12 pb-24">
-          {categories.map((category, catIndex) => (
+          {categories
+            .filter(c => c.bookmarks.length > 0)
+            .filter(c => !c.isHidden || isAdmin)
+            .map((category, catIndex) => (
             <section
               key={category.id}
               className="animate-fade-in-scale"
               style={{ animationDelay: `${0.4 + catIndex * 0.1}s` }}
             >
               {/* 分组标题 */}
-              <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/30 px-3 mb-4 flex items-center gap-2">
-                {renderIcon(category.icon, undefined, 'w-4 h-4')}
+              <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-white/50 px-3 mb-6 flex items-center gap-3">
+                {renderIcon(category.icon, undefined, 'w-5 h-5')}
                 {category.title}
-                <span className="text-white/15 font-normal">({category.bookmarks.length})</span>
+                <span className="text-white/20 font-medium text-xs">({category.bookmarks.length})</span>
               </h2>
 
-              {/* 书签列表 - 改为响应式网格布局 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {category.bookmarks.map((bookmark) => (
-                  <a
-                    key={bookmark.id}
-                    href={bookmark.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center p-4 rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group"
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors duration-300 shrink-0">
-                      {renderIcon(bookmark.icon, bookmark.url)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white group-hover:text-white transition-colors duration-300 truncate">
+              {/* 书签列表 - 根据分类布局模式渲染 */}
+              {category.layout === 'grid' ? (
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-x-4 gap-y-8 px-2">
+                  {category.bookmarks.map((bookmark) => (
+                    <a
+                      key={bookmark.id}
+                      href={bookmark.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center group"
+                    >
+                      <div className="w-14 h-14 rounded-2xl glass mb-3 flex items-center justify-center group-hover:bg-white/10 group-hover:-translate-y-1 group-hover:border-white/20 transition-all duration-300">
+                        {renderIcon(bookmark.icon, bookmark.url, 'w-7 h-7')}
+                      </div>
+                      <span className="text-[11px] font-medium text-white/50 group-hover:text-white transition-colors duration-300 text-center truncate w-full px-1">
                         {bookmark.title}
-                      </p>
-                      {bookmark.description && (
-                        <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5 truncate">
-                          {bookmark.description}
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {category.bookmarks.map((bookmark) => (
+                    <a
+                      key={bookmark.id}
+                      href={bookmark.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center p-4 rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors duration-300 shrink-0">
+                        {renderIcon(bookmark.icon, bookmark.url)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white group-hover:text-white transition-colors duration-300 truncate">
+                          {bookmark.title}
                         </p>
-                      )}
-                    </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-white/0 group-hover:text-white/30 transition-all duration-300 shrink-0 ml-2" />
-                  </a>
-                ))}
-              </div>
+                        {bookmark.description && (
+                          <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5 truncate">
+                            {bookmark.description}
+                          </p>
+                        )}
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-white/0 group-hover:text-white/30 transition-all duration-300 shrink-0 ml-2" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </section>
           ))}
         </div>
