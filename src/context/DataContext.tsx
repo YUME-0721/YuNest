@@ -70,10 +70,10 @@ export const PRESET_SEARCH_ENGINES = [
 const defaultState: AppState = {
   settings: {
     siteName: 'YuNest',
-    wallpaperType: 'api',
+    wallpaperType: 'color',
     wallpaperUrl: '',
     localWallpaper: '',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000000',
     glassEffect: true,
     darkMask: true,
     searchEngine: 'https://www.google.com/search?q=',
@@ -253,14 +253,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
 
     const path = 'yunest_data.json';
+    const branch = 'data'; // 固定存储在 data 分支
     const stateToSave = { 
       ...state, 
       settings: { ...state.settings, githubToken: '', githubRepo: '' } 
     };
 
-    // 1. 尝试获取现有文件的 SHA
+    // 1. 尝试获取现有文件的 SHA (带上 branch 参数)
     let sha = '';
-    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github+json'
@@ -272,7 +273,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       sha = existing.sha;
     }
 
-    // 2. 执行 PUT 请求 (创建或更新)
+    // 2. 执行 PUT 请求 (创建或更新，指定 branch)
     const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: {
@@ -283,7 +284,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({
         message: 'YuNest Data Sync',
         content: btoa(unescape(encodeURIComponent(JSON.stringify(stateToSave, null, 2)))),
-        sha: sha || undefined
+        sha: sha || undefined,
+        branch: branch // 关键：指定推送到 data 分支
       })
     });
 
@@ -300,7 +302,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
 
     const path = 'yunest_data.json';
-    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    const branch = 'data';
+    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github+json',

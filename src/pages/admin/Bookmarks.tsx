@@ -387,13 +387,14 @@ export default function Bookmarks() {
                 <input
                   type="text"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="Lucide 图标名或图片 URL"
+                  placeholder="Globe"
                   value={bookmarkForm.icon}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, icon: e.target.value })}
                 />
-                <p className="text-xs text-slate-400 mt-1">
-                  留空或填写 Globe 使用默认图标，也可填写网站 favicon URL
-                </p>
+                <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                  <p>留空或填写 Globe 使用默认图标，也可填写网站 favicon URL</p>
+                  <p>点击 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline font-medium">图标库</a>，跳转到图标库</p>
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">

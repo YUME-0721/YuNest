@@ -73,11 +73,12 @@ npm run build
 
 ### 3. 一键静态托管部署推荐
 
-你可以直接将该项目的仓库导入以下常见平台，完全免费且配置简单：
-- **Cloudflare Pages / Vercel / Netlify**:
+你可以直接fork本项目，然后将该项目的仓库导入以下常见平台，完全免费且配置简单：
+- **Cloudflare Pages / Vercel / Netlify / EdgeOne**: 
   - `Build Command` (构建命令): `npm run build`
   - `Output Directory` (输出目录): `dist`
   - *补充：必须在平台提供的 Environment Variables 中增设 `VITE_ADMIN_PASSWORD` 环境变量以保证后台安全。*
+  - **隐私建议**: 如果您希望保持当前仓库公开供他人参考，但又想**隐藏自己的个人书签数据**，请务必参考下方 [配置云端同步](#配置云端同步-推荐) 章节中的“隐私存储方案”。
 
 ## 📚 使用说明 (How to Use)
 
@@ -93,8 +94,11 @@ npm run build
      3. 权限 (Scopes) 必须勾选 **`repo`** 权限（如果是私有仓库）或 **`public_repo`**（如果是公开仓库）。
    - **填写 GitHub 仓库**:
      1. 直接填入您的仓库全名，例如 `YUME-0721/YuNest`。
-     2. 系统会自动在您的仓库根目录下维护一个 `yunest_data.json` 文件。
-   - **安全提示**: YuNest 在同步时会自动剔除隐私凭证，即使仓库公开，他人也无法从 JSON 文件中获取您的 Token。
+     2. 系统会自动在您的仓库中的 **`data` 分支** 下维护一个 `yunest_data.json` 文件。
+   - **🛡️ 隐私存储方案 (强力推荐)**:
+     - **方法**: 您可以在fork本项目时候，选择创建一个全新的 **Private (私有) 仓库**（例如 `my-private-data`），然后在 YuNest 后台填写该私有仓库名。
+     - **效果**: 这样可以实现“代码公开展示，数据私密同步”的完美平衡。
+   - **安全提示**: YuNest 在同步时会自动剔除您的 GitHub Token 等凭证，确保数据文件本身不包含密钥。
 6. **多端同步转移**: 当需要到其他设备上应用同样的配置时，前往“备份与还原”填写 Token 与 仓库名，点击“从云端拉取 (Pull)”即可一键还原。
 
 ## 📄 许可申明 (License)

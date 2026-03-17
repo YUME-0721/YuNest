@@ -153,56 +153,7 @@ export default function Backup() {
       </div>
 
       <div className="grid grid-cols-1 gap-8">
-        {/* 导入数据 */}
-        <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <UploadCloud className="w-6 h-6 text-[#ec5b13]" />
-            <h3 className="text-xl font-bold">导入数据</h3>
-          </div>
-
-          {/* 导入状态提示 */}
-          {importStatus !== 'idle' && (
-            <div
-              className={`flex items-center gap-2 p-4 rounded-xl mb-4 text-sm font-medium ${
-                importStatus === 'success'
-                  ? 'bg-green-50 text-green-700 border border-green-100'
-                  : 'bg-red-50 text-red-700 border border-red-100'
-              }`}
-            >
-              {importStatus === 'success' ? (
-                <CheckCircle className="w-5 h-5 shrink-0" />
-              ) : (
-                <AlertTriangle className="w-5 h-5 shrink-0" />
-              )}
-              {importMessage}
-            </div>
-          )}
-
-          <div
-            className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center py-12 sm:py-16 px-6 bg-slate-50/50 hover:border-[#ec5b13]/50 transition-colors cursor-pointer group"
-            onClick={handleImportClick}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <div className="w-16 h-16 rounded-full bg-[#ec5b13]/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <UploadCloud className="w-8 h-8 text-[#ec5b13]" />
-            </div>
-            <h4 className="text-lg font-semibold mb-1">点击或拖拽 JSON 文件至此处</h4>
-            <p className="text-sm text-slate-500 mb-6">仅支持 .json 格式的备份文件</p>
-            <button className="px-8 py-2.5 bg-[#ec5b13] text-white rounded-xl font-bold text-sm shadow-lg shadow-[#ec5b13]/20 hover:bg-[#ec5b13]/90 transition-all">
-              选择本地文件
-            </button>
-            <input
-              type="file"
-              accept=".json"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-            />
-          </div>
-        </section>
-
-        {/* 云端同步 (GitHub Gist) */}
+        {/* 云端同步 (GitHub 仓库) */}
         <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
             <Cloud className="w-6 h-6 text-[#ec5b13]" />
@@ -215,7 +166,7 @@ export default function Backup() {
               <input
                 type="password"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                placeholder="ghp_xxx (需 gist 权限)"
+                placeholder="ghp_xxx (需 repo 权限)"
                 value={state.settings.githubToken || ''}
                 onChange={(e) => updateSettings({ githubToken: e.target.value })}
               />
@@ -256,7 +207,7 @@ export default function Backup() {
               className="py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UploadCloud className="w-4 h-4" />
-              推送到云端 (Push)
+              推送到仓库 (Push)
             </button>
             <button
               onClick={handlePullFromRepo}
@@ -264,34 +215,62 @@ export default function Backup() {
               className="py-3 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
-              从云端拉取 (Pull)
+              从仓库拉取 (Pull)
             </button>
           </div>
         </section>
 
-        {/* 导出数据 */}
-        <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col">
+        {/* 本地备份 (导入与导出整合) */}
+        <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
-            <Download className="w-6 h-6 text-[#ec5b13]" />
-            <h3 className="text-xl font-bold">导出数据</h3>
+            <Database className="w-6 h-6 text-[#ec5b13]" />
+            <h3 className="text-xl font-bold">本地备份</h3>
           </div>
-          <div className="flex-1 bg-slate-900 rounded-xl p-4 font-mono text-xs text-green-400 overflow-hidden mb-6 relative max-h-48 overflow-y-auto">
-            <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-slate-900 to-transparent pointer-events-none" />
-            <pre><code>{JSON.stringify({
-              version: '1.0.0',
-              exportTime: new Date().toISOString(),
-              settings: state.settings.siteName,
-              categoriesCount: state.categories.length,
-              bookmarksCount: totalBookmarks,
-            }, null, 2)}</code></pre>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* 导入子区域 */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">导入数据</h4>
+              {importStatus !== 'idle' && (
+                <div className={`p-3 rounded-xl text-xs font-medium ${importStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                  {importMessage}
+                </div>
+              )}
+              <div
+                className="border-2 border-dashed border-slate-100 rounded-2xl flex flex-col items-center justify-center py-8 bg-slate-50/30 hover:border-[#ec5b13]/30 transition-all cursor-pointer group"
+                onClick={handleImportClick}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              >
+                <UploadCloud className="w-6 h-6 text-slate-300 mb-2 group-hover:text-[#ec5b13] transition-colors" />
+                <p className="text-xs text-slate-500 font-medium">点击或拖拽 JSON 导入</p>
+                <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+              </div>
+            </div>
+
+            {/* 导出子区域 */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">导出数据</h4>
+              <div className="bg-slate-50 rounded-2xl p-4 h-[92px] overflow-hidden relative">
+                <pre className="text-[10px] text-slate-400 font-mono leading-tight">
+                  {JSON.stringify({
+                    version: '1.0.0',
+                    exportTime: new Date().toISOString().split('T')[0],
+                    categories: state.categories.length,
+                    bookmarks: totalBookmarks,
+                  }, null, 2)}
+                </pre>
+                <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-50 to-transparent" />
+              </div>
+              <button
+                onClick={exportData}
+                className="w-full py-3 bg-white border border-slate-200 text-slate-700 hover:border-[#ec5b13] hover:text-[#ec5b13] rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                下载备份文件 (.json)
+              </button>
+            </div>
           </div>
-          <button
-            onClick={exportData}
-            className="w-full py-3 border border-[#ec5b13] text-[#ec5b13] hover:bg-[#ec5b13] hover:text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            下载全量备份 (.json)
-          </button>
         </section>
 
         {/* 危险区域 */}

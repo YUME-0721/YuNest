@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { Settings, Tags, RefreshCw, Leaf, Home, Menu, X, Image as ImageIcon } from 'lucide-react';
+import { Settings, Tags, RefreshCw, Home, Menu, X, Image as ImageIcon } from 'lucide-react';
 import { useData } from '../../context/DataContext.tsx';
 
 const NAV_ITEMS = [
@@ -48,12 +48,12 @@ export default function AdminLayout() {
       >
         {/* 品牌标识 */}
         <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-10 h-10 rounded-xl bg-[#ec5b13] flex items-center justify-center text-white shadow-lg shadow-[#ec5b13]/20">
-            <Leaf className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-[#ec5b13] flex items-center justify-center overflow-hidden shadow-lg shadow-[#ec5b13]/20">
+            <img src="/favicon.svg" alt="logo" className="w-7 h-7 filter brightness-0 invert" />
           </div>
           <div>
             <h1 className="text-lg font-bold tracking-tight">{state.settings.siteName}</h1>
-            <p className="text-xs text-slate-500">后台管理系统</p>
+            <p className="text-xs text-slate-500 font-medium">导航页</p>
           </div>
         </div>
 
@@ -101,8 +101,8 @@ export default function AdminLayout() {
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#ec5b13] flex items-center justify-center text-white">
-              <Leaf className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-[#ec5b13] flex items-center justify-center overflow-hidden">
+              <img src="/favicon.svg" alt="logo" className="w-5 h-5 filter brightness-0 invert" />
             </div>
             <span className="text-sm font-bold">{state.settings.siteName}</span>
           </div>

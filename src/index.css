@@ -5,8 +5,8 @@
   --color-accent: #ec5b13;
   --color-accent-light: #ff7a3d;
   --color-accent-dark: #c94a0e;
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(0, 0, 0, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.15);
 }
 
 /* NOTE: Tailwind v4 preflight 已包含合理的 CSS 重置，此处不再重复设置 margin/padding */
@@ -131,12 +131,13 @@ body {
   animation: shake 0.4s ease-in-out;
 }
 
-/* NOTE: 玻璃拟态效果 */
+/* NOTE: 玻璃拟态效果 - 增强对比度 */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 .glass-strong {

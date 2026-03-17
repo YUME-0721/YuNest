@@ -243,8 +243,18 @@ export default function Wallpaper() {
           </div>
         </div>
 
-        {/* 保存栏 - 移除背景和边框，仅保留按钮悬浮 */}
-        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-6 sm:-mx-8 px-6 sm:px-8 py-6 flex justify-end gap-4 mt-8 pointer-events-none">
+        {/* 保存栏 */}
+        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-6 sm:-mx-8 px-6 sm:px-8 py-6 flex flex-col items-end gap-3 mt-8 pointer-events-none">
+          {localSettings.wallpaperType !== 'color' && localSettings.wallpaperType !== 'local' && !localSettings.wallpaperUrl && (
+            <p className="text-[10px] text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-full border border-slate-100 pointer-events-auto">
+              提示: 未填写地址将使用系统默认壁纸
+            </p>
+          )}
+          {localSettings.wallpaperType === 'local' && !localSettings.localWallpaper && (
+            <p className="text-[10px] text-amber-500 font-medium bg-amber-50 px-3 py-1 rounded-full border border-amber-100 pointer-events-auto">
+              注意: 未上传图片将显示系统默认背景
+            </p>
+          )}
           <button
             onClick={handleSave}
             className={`px-8 py-3 rounded-xl font-bold shadow-2xl transition-all flex items-center gap-2 pointer-events-auto ${

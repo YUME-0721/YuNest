@@ -60,6 +60,21 @@ export default function Home() {
     return idx === -1 ? 0 : idx;
   });
   
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // 监听滚动，控制标题显隐
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const { time, date } = useClock();
 
   const currentEngine = PRESET_SEARCH_ENGINES[engineIndex];
@@ -196,7 +211,11 @@ export default function Home() {
       </div>
 
       {/* 左上角网站标题 */}
-      <div className="fixed top-6 left-8 z-50 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+      <div 
+        className={`fixed top-6 left-8 z-50 transition-all duration-500 ease-in-out ${
+          isScrolled ? 'opacity-0 -translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
+        }`}
+      >
         <h1 className="text-lg font-medium tracking-[0.15em] text-white/60 uppercase">
           {settings.siteName}
         </h1>
@@ -288,11 +307,11 @@ export default function Home() {
                       {renderIcon(bookmark.icon, bookmark.url)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white/80 group-hover:text-white transition-colors duration-300 truncate">
+                      <p className="text-sm font-bold text-white group-hover:text-white transition-colors duration-300 truncate">
                         {bookmark.title}
                       </p>
                       {bookmark.description && (
-                        <p className="text-[10px] text-white/30 uppercase tracking-wider mt-0.5 truncate">
+                        <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5 truncate">
                           {bookmark.description}
                         </p>
                       )}
@@ -304,6 +323,18 @@ export default function Home() {
             </section>
           ))}
         </div>
+
+        {/* 页脚 */}
+        <footer className="mt-auto py-12 text-center animate-fade-in" style={{ animationDelay: '1.2s' }}>
+          <a
+            href="https://github.com/YUME-0721/YuNest"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] font-medium tracking-[0.35em] uppercase text-white/20 hover:text-white/60 transition-all duration-500 hover:tracking-[0.45em]"
+          >
+            Built by YuNest
+          </a>
+        </footer>
       </main>
 
       {/* 认证弹窗 */}
@@ -335,7 +366,7 @@ export default function Home() {
                     type="password"
                     placeholder="输入认证密码"
                     className={`w-full py-4 px-6 glass rounded-2xl outline-none text-center text-lg tracking-[0.3em] font-bold transition-all duration-300 border ${
-                      authError ? 'border-red-500/50 text-red-200' : 'border-white/5 focus:border-white/20'
+                      authError ? 'border-red-500/50 text-red-100 bg-red-500/10 animate-shake' : 'border-white/5 focus:border-white/20'
                     }`}
                     value={password}
                     onChange={(e) => {
@@ -344,8 +375,10 @@ export default function Home() {
                     }}
                   />
                   {authError && (
-                    <div className="absolute -bottom-6 left-0 right-0 text-[10px] text-red-400 font-bold tracking-wider text-center">
-                      密码验证失败，请重新输入
+                    <div className="mt-4 flex items-center justify-center gap-2 text-[11px] font-bold tracking-widest text-red-400/90 uppercase animate-fade-in">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      密码认证失败，请核对后重试
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                     </div>
                   )}
                 </div>
