@@ -60,7 +60,11 @@ npm install
 # 3. 配置认证环境变量（可选）
 # 将密码更新为您自己的后台访问密码，如果不更改，默认密码将是 123456
 cp .env.example .env
-# 编辑 .env 文件，修改 VITE_ADMIN_PASSWORD 值
+# 编辑 .env 文件，修改以下值
+VITE_ADMIN_PASSWORD=...
+# 可选：配置 GitHub 自动同步，填写后新设备打开网站无需手动输入 Token 和 仓库名
+VITE_GITHUB_TOKEN=...
+VITE_GITHUB_REPO=...
 
 # 4. 启动本地开发服务
 npm run dev

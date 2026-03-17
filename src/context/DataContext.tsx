@@ -69,6 +69,10 @@ export const PRESET_SEARCH_ENGINES = [
   },
 ];
 
+// 从环境变量读取默认同步配置
+const envGithubToken = (import.meta as any).env.VITE_GITHUB_TOKEN || '';
+const envGithubRepo = (import.meta as any).env.VITE_GITHUB_REPO || '';
+
 const defaultState: AppState = {
   settings: {
     siteName: 'YuNest',
@@ -79,8 +83,8 @@ const defaultState: AppState = {
     glassEffect: true,
     darkMask: true,
     searchEngine: 'https://www.google.com/search?q=',
-    githubToken: '',
-    githubRepo: '',
+    githubToken: envGithubToken,
+    githubRepo: envGithubRepo,
   },
   categories: [
     {
@@ -127,7 +131,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         return {
           ...defaultState,
           ...parsed,
-          settings: { ...defaultState.settings, ...parsed.settings },
+          settings: { 
+            ...defaultState.settings, 
+            ...parsed.settings,
+            // 如果本地没存过 token/repo 但环境变量里有，则使用环境变量的
+            githubToken: parsed.settings?.githubToken || envGithubToken,
+            githubRepo: parsed.settings?.githubRepo || envGithubRepo
+          },
           categories: (parsed.categories || []).map((c: any) => ({
             layout: 'card', 
             isHidden: false, // 默认旧数据为公开
@@ -144,6 +154,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('yunest_data', JSON.stringify(state));
   }, [state]);
+
+  // 页面加载时自动从云端同步数据
+  useEffect(() => {
+    const token = state.settings.githubToken || envGithubToken;
+    const repo = state.settings.githubRepo || envGithubRepo;
+    
+    if (token && repo) {
+      // 静默执行拉取同步
+      fetchFromRepo(token, repo).catch((err) => {
+        console.warn('Initial data sync ignored:', err.message);
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 仅在根组件挂载时运行一次
 
   const updateSettings = useCallback((newSettings: Partial<Settings>) => {
     setState((prev) => ({ ...prev, settings: { ...prev.settings, ...newSettings } }));
@@ -354,7 +378,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github+json',
-        'Cache-Control': 'no-cache',
       }
     });
 
