@@ -269,6 +269,167 @@
           "lanUrl": ""
         }
       ]
+    },
+    {
+      "layout": "card",
+      "isHidden": true,
+      "title": "应用",
+      "icon": "Folder",
+      "id": "c_1773923506084",
+      "bookmarks": [
+        {
+          "title": "NAS",
+          "url": "https://fnos.2780666.xyz",
+          "icon": "https://img.072199.xyz/file/icon/1773923631545.svg",
+          "description": "飞牛nas",
+          "lanUrl": "http://192.168.1.198:5666/",
+          "id": "b_1773923642601"
+        },
+        {
+          "title": "VS Code",
+          "url": "http://192.168.1.198:15333/",
+          "icon": "https://img.072199.xyz/file/icon/1773923847585.svg",
+          "description": "代码编辑器",
+          "lanUrl": "http://192.168.1.198:15333/",
+          "id": "b_1773923853198"
+        },
+        {
+          "title": "MeTube",
+          "url": "http://192.168.1.198:8081/",
+          "icon": "https://img.072199.xyz/file/icon/1773923944132.svg",
+          "description": "油管视频下载器",
+          "lanUrl": "http://192.168.1.198:8081/",
+          "id": "b_1773923950866"
+        },
+        {
+          "title": "IT-tools",
+          "url": "http://192.168.1.198:23075/",
+          "icon": "https://img.072199.xyz/file/icon/1773924087363.ico",
+          "description": "开发者工具箱",
+          "lanUrl": "http://192.168.1.198:23075/",
+          "id": "b_1773924111864"
+        },
+        {
+          "title": "Music Tag",
+          "url": "http://192.168.1.198:38008/",
+          "icon": "https://img.072199.xyz/file/icon/1773924233454.png",
+          "description": "音乐刮削器",
+          "lanUrl": "http://192.168.1.198:38008/",
+          "id": "b_1773924237015"
+        },
+        {
+          "title": "Clash",
+          "url": "http://192.168.1.198:28002/",
+          "icon": "https://img.072199.xyz/file/icon/1773924314787.svg",
+          "description": "加速器",
+          "lanUrl": "http://192.168.1.198:28002/",
+          "id": "b_1773924317837"
+        },
+        {
+          "title": "MoonTV",
+          "url": "http://192.168.1.198:23555/",
+          "icon": "https://img.072199.xyz/file/icon/1773924403514.ico",
+          "description": "在线影视",
+          "lanUrl": "http://192.168.1.198:23555/",
+          "id": "b_1773924411585"
+        },
+        {
+          "title": "Bili Sync",
+          "url": "http://192.168.1.198:12345/",
+          "icon": "https://img.072199.xyz/file/icon/1773924483279.png",
+          "description": "b站视频下载",
+          "lanUrl": "http://192.168.1.198:12345/",
+          "id": "b_1773924505930"
+        },
+        {
+          "title": "Cloud Saver",
+          "url": "http://192.168.1.198:18008/",
+          "icon": "https://img.072199.xyz/file/icon/1773924624515.ico",
+          "description": "网盘资源聚合搜索",
+          "lanUrl": "http://192.168.1.198:18008/",
+          "id": "b_1773924629583"
+        },
+        {
+          "title": "Lucky",
+          "url": "https://lucky.2780666.xyz",
+          "icon": "https://img.072199.xyz/file/icon/1773924784227.png",
+          "description": "网络管理",
+          "lanUrl": "http://192.168.1.198:16601/lucky888",
+          "id": "b_1773924794968"
+        },
+        {
+          "title": "ANI-RSS",
+          "url": "ANI-RSS",
+          "icon": "https://img.072199.xyz/file/icon/1773924871578.svg",
+          "description": "RSS订阅下载",
+          "lanUrl": "http://192.168.1.198:17789/",
+          "id": "b_1773924881575"
+        },
+        {
+          "title": "Vert",
+          "url": "http://192.168.1.198:14580/",
+          "icon": "https://img.072199.xyz/file/icon/1773925029879.png",
+          "description": "图片、文档、音频、视频格式转换工具",
+          "lanUrl": "http://192.168.1.198:14580/",
+          "id": "b_1773925035182"
+        },
+        {
+          "title": "Emby",
+          "url": "https://emby.2780666.xyz",
+          "icon": "https://img.072199.xyz/file/icon/1773925111810.svg",
+          "description": "影视服务",
+          "lanUrl": "http://192.168.1.198:19010/",
+          "id": "b_1773925113366"
+        },
+        {
+          "title": "御坂弹幕",
+          "url": "http://192.168.1.198:17768/",
+          "icon": "https://img.072199.xyz/file/icon/1773925204897.png",
+          "description": "自建弹幕库",
+          "lanUrl": "http://192.168.1.198:17768/",
+          "id": "b_1773925223119"
+        },
+        {
+          "title": "Calibre",
+          "url": "https://books.2780666.xyz",
+          "icon": "https://img.072199.xyz/file/icon/1773925320370.ico",
+          "description": "自建电子书库",
+          "lanUrl": "http://192.168.1.198:23100/",
+          "id": "b_1773925345500"
+        },
+        {
+          "title": "Openlist",
+          "url": "https://openlist.2780666.xyz",
+          "icon": "https://img.072199.xyz/file/icon/1773925452952.svg",
+          "description": "网盘挂载",
+          "lanUrl": "http://192.168.1.198:15255/",
+          "id": "b_1773925475430"
+        },
+        {
+          "title": "OmniTools",
+          "url": "http://192.168.1.198:3060/",
+          "icon": "https://img.072199.xyz/file/icon/1773925567929.png",
+          "description": "常用工具集合",
+          "lanUrl": "http://192.168.1.198:3060/",
+          "id": "b_1773925590877"
+        },
+        {
+          "title": "qBittorrent",
+          "url": "http://192.168.1.198:8085/",
+          "icon": "https://img.072199.xyz/file/icon/1773925652569.svg",
+          "description": "BT资源下载",
+          "lanUrl": "http://192.168.1.198:8085/",
+          "id": "b_1773925665629"
+        },
+        {
+          "title": "Navidrome",
+          "url": "https://music.2780666.xyz",
+          "icon": "https://img.072199.xyz/file/icon/1773925733061.png",
+          "description": "自建音乐站",
+          "lanUrl": "http://192.168.1.198:14533/",
+          "id": "b_1773925749037"
+        }
+      ]
     }
   ]
 }
