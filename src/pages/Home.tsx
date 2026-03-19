@@ -16,7 +16,8 @@ import * as Icons from 'lucide-react';
 function getFaviconUrl(siteUrl: string): string {
   try {
     const url = new URL(siteUrl);
-    return `https://favicon.im/${url.hostname}`;
+    // 使用 Google S2 的高分辨率接口，缓存效果更好且速度较快
+    return `https://www.google.com/s2/favicons?sz=64&domain=${url.hostname}`;
   } catch {
     return '';
   }
@@ -62,6 +63,27 @@ export default function Home() {
   
   const [isScrolled, setIsScrolled] = useState(false);
   const isAdmin = useMemo(() => sessionStorage.getItem('yunest_auth') === 'true', []);
+  
+  // 右键菜单相关
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, bookmark: any } | null>(null);
+
+  const handleContextMenu = (e: React.MouseEvent, bookmark: any) => {
+    // 只有在定义了内网地址时才显示自定义右键菜单
+    if (bookmark.lanUrl) {
+      e.preventDefault();
+      setContextMenu({ x: e.clientX, y: e.clientY, bookmark });
+    }
+  };
+
+  useEffect(() => {
+    const handleCloseMenu = () => setContextMenu(null);
+    window.addEventListener('click', handleCloseMenu);
+    window.addEventListener('scroll', handleCloseMenu);
+    return () => {
+      window.removeEventListener('click', handleCloseMenu);
+      window.removeEventListener('scroll', handleCloseMenu);
+    };
+  }, []);
 
   // 监听滚动，控制标题显隐
   useEffect(() => {
@@ -93,6 +115,23 @@ export default function Home() {
     }
     return url;
   }, [settings.wallpaperType, settings.wallpaperUrl, settings.localWallpaper]);
+
+  const filteredCategories = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return categories.filter(c => c.bookmarks.length > 0).filter(c => !c.isHidden || isAdmin);
+
+    return categories
+      .map(cat => ({
+        ...cat,
+        bookmarks: cat.bookmarks.filter(b => 
+          b.title.toLowerCase().includes(query) || 
+          b.url.toLowerCase().includes(query) || 
+          (b.description && b.description.toLowerCase().includes(query))
+        )
+      }))
+      .filter(c => c.bookmarks.length > 0)
+      .filter(c => !c.isHidden || isAdmin);
+  }, [categories, searchQuery, isAdmin]);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
@@ -136,19 +175,21 @@ export default function Home() {
    * 4. 兜底使用 Globe 图标
    */
   const renderIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
-    // URL 图片
-    if (iconName.startsWith('http')) {
+    // 1. URL 图片 (支持 http/https 开头)
+    if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://'))) {
       return (
         <img
           src={iconName}
           alt="icon"
-          className={`${size} object-contain rounded-sm`}
+          className={`${size} object-contain`}
           loading="lazy"
           onError={(e) => {
-            // 加载失败时尝试 favicon
-            const target = e.target as HTMLImageElement;
+            // 加载失败时尝试 favicon (如果有 siteUrl)
             if (siteUrl) {
-              target.src = getFaviconUrl(siteUrl);
+              (e.target as HTMLImageElement).src = getFaviconUrl(siteUrl);
+            } else {
+              // 分类图标加载失败，显示兜底图标
+              (e.target as HTMLImageElement).style.display = 'none';
             }
           }}
         />
@@ -281,10 +322,7 @@ export default function Home() {
 
         {/* 书签分组 - 改为垂直排列，内部书签横向排列 */}
         <div className="w-full max-w-7xl flex flex-col gap-12 pb-24">
-          {categories
-            .filter(c => c.bookmarks.length > 0)
-            .filter(c => !c.isHidden || isAdmin)
-            .map((category, catIndex) => (
+          {filteredCategories.map((category, catIndex) => (
             <section
               key={category.id}
               className="animate-fade-in-scale"
@@ -299,19 +337,20 @@ export default function Home() {
 
               {/* 书签列表 - 根据分类布局模式渲染 */}
               {category.layout === 'grid' ? (
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-x-4 gap-y-8 px-2">
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-x-1 sm:gap-x-2 gap-y-5 px-1">
                   {category.bookmarks.map((bookmark) => (
                     <a
                       key={bookmark.id}
                       href={bookmark.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-col items-center group"
+                      onContextMenu={(e) => handleContextMenu(e, bookmark)}
+                      className="flex flex-col items-center group w-full"
                     >
-                      <div className="w-14 h-14 rounded-2xl glass mb-3 flex items-center justify-center group-hover:bg-white/10 group-hover:-translate-y-1 group-hover:border-white/20 transition-all duration-300">
-                        {renderIcon(bookmark.icon, bookmark.url, 'w-7 h-7')}
+                      <div className="w-16 h-16 rounded-2xl glass mb-2 flex items-center justify-center group-hover:bg-white/10 group-hover:-translate-y-1 group-hover:border-white/20 transition-all duration-300">
+                        {renderIcon(bookmark.icon, bookmark.url, 'w-8 h-8')}
                       </div>
-                      <span className="text-[11px] font-medium text-white/50 group-hover:text-white transition-colors duration-300 text-center truncate w-full px-1">
+                      <span className="text-[13px] font-medium text-white/50 group-hover:text-white transition-colors duration-300 text-center truncate w-full px-1">
                         {bookmark.title}
                       </span>
                     </a>
@@ -325,6 +364,7 @@ export default function Home() {
                       href={bookmark.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onContextMenu={(e) => handleContextMenu(e, bookmark)}
                       className="flex items-center p-4 rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group"
                     >
                       <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors duration-300 shrink-0">
@@ -417,6 +457,53 @@ export default function Home() {
               </form>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 右键菜单 */}
+      {contextMenu && (
+        <div 
+          className="fixed z-[200] w-48 glass-strong rounded-2xl p-1.5 shadow-2xl border border-white/10 animate-fade-in origin-top-left"
+          style={{ 
+            left: Math.min(contextMenu.x, window.innerWidth - 200), 
+            top: Math.min(contextMenu.y, window.innerHeight - 120) 
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-3 py-2 text-[10px] font-bold text-white/30 uppercase tracking-widest border-b border-white/5 mb-1">
+            打开方式
+          </div>
+          <button
+            onClick={() => {
+              window.open(contextMenu.bookmark.url, '_blank');
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-all group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+              <Icons.Globe className="w-4 h-4 text-blue-400" />
+            </div>
+            <div className="text-left">
+              <div className="text-xs font-bold leading-none mb-1">默认地址</div>
+              <div className="text-[10px] text-white/30 truncate w-24">公网/默认访问</div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => {
+              window.open(contextMenu.bookmark.lanUrl, '_blank');
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-all group mt-1"
+          >
+            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+              <Icons.Network className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-left">
+              <div className="text-xs font-bold leading-none mb-1">内网地址</div>
+              <div className="text-[10px] text-white/30 truncate w-24">局域网/私有访问</div>
+            </div>
+          </button>
         </div>
       )}
     </div>

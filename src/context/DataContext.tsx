@@ -9,6 +9,7 @@ export interface Bookmark {
   id: string;
   title: string;
   url: string;
+  lanUrl?: string; // 内网地址
   icon: string;
   description?: string;
 }
@@ -151,29 +152,28 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return defaultState;
   });
 
-  // 记录初始化时是否存在本地数据，避免自动同步覆盖本地未保存的修改
-  const isFreshStart = React.useRef(!localStorage.getItem('yunest_data'));
+  // 检查是否是初次进入（本地尚未存储任何数据）
+  const [isInitialLoad] = useState(() => !localStorage.getItem('yunest_data'));
 
+  // 1. 仅在初次进入且配置了环境变量时，自动从云端同步数据
+  useEffect(() => {
+    if (isInitialLoad) {
+      const token = envGithubToken;
+      const repo = envGithubRepo;
+      if (token && repo) {
+        console.log('YuNest: 首次运行，正在自动从云端拉取数据...');
+        fetchFromRepo(token, repo).catch((err) => {
+          console.warn('Initial data sync ignored:', err.message);
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInitialLoad]);
+
+  // 2. 状态持久化到本地（放在同步逻辑后，避免初次加载时过早写入空数据）
   useEffect(() => {
     localStorage.setItem('yunest_data', JSON.stringify(state));
   }, [state]);
-
-  // 仅在初次进入（无本地数据）时自动从云端同步
-  useEffect(() => {
-    if (!isFreshStart.current) return;
-    
-    const token = state.settings.githubToken || envGithubToken;
-    const repo = state.settings.githubRepo || envGithubRepo;
-    
-    if (token && repo) {
-      // 标记已经尝试过初次同步，防止后续触发
-      isFreshStart.current = false;
-      fetchFromRepo(token, repo).catch((err) => {
-        console.warn('Initial data sync ignored:', err.message);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
 
   const updateSettings = useCallback((newSettings: Partial<Settings>) => {
     setState((prev) => ({ ...prev, settings: { ...prev.settings, ...newSettings } }));

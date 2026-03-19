@@ -5,7 +5,8 @@
 
 import React, { useState } from 'react';
 import { useData, type Category, type Bookmark } from '../../context/DataContext.tsx';
-import { Plus, Edit2, Trash2, FolderOpen, Link as LinkIcon, GripVertical, ChevronUp, ChevronDown, LayoutGrid, LayoutList, Eye, EyeOff, Lock } from 'lucide-react';
+import * as Icons from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderOpen, Link as LinkIcon, ChevronUp, ChevronDown, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe } from 'lucide-react';
 
 export default function Bookmarks() {
   const {
@@ -24,8 +25,8 @@ export default function Bookmarks() {
   // 分类模态框状态
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [categoryForm, setCategoryForm] = useState<{ title: string; icon: string; layout: 'card' | 'grid'; isHidden: boolean }>({ 
-    title: '', 
+  const [categoryForm, setCategoryForm] = useState<{ title: string; icon: string; layout: 'card' | 'grid'; isHidden: boolean }>({
+    title: '',
     icon: 'Folder',
     layout: 'card',
     isHidden: false
@@ -34,7 +35,7 @@ export default function Bookmarks() {
   // 书签模态框状态
   const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [bookmarkForm, setBookmarkForm] = useState({ title: '', url: '', icon: '', description: '' });
+  const [bookmarkForm, setBookmarkForm] = useState({ title: '', url: '', lanUrl: '', icon: '', description: '' });
 
   const currentCategory = state.categories.find((c) => c.id === activeCategory);
   const currentCategoryIndex = state.categories.findIndex((c) => c.id === activeCategory);
@@ -54,9 +55,9 @@ export default function Bookmarks() {
 
   const handleEditCategory = (category: Category) => {
     setEditingCategory(category);
-    setCategoryForm({ 
-      title: category.title, 
-      icon: category.icon, 
+    setCategoryForm({
+      title: category.title,
+      icon: category.icon,
       layout: category.layout || 'card',
       isHidden: category.isHidden || false
     });
@@ -74,14 +75,21 @@ export default function Bookmarks() {
   // 书签处理器
   const handleSaveBookmark = () => {
     if (!bookmarkForm.title || !bookmarkForm.url || !activeCategory) return;
+    
+    const finalForm = { ...bookmarkForm };
+    // 如果没有填写图标，尝试自动补全为解析出的 favicon URL，实现数据固化，提升加载速度
+    if (!finalForm.icon) {
+      finalForm.icon = getFaviconUrl(finalForm.url);
+    }
+
     if (editingBookmark) {
-      updateBookmark(activeCategory, editingBookmark.id, bookmarkForm);
+      updateBookmark(activeCategory, editingBookmark.id, finalForm);
     } else {
-      addBookmark(activeCategory, bookmarkForm);
+      addBookmark(activeCategory, finalForm);
     }
     setIsBookmarkModalOpen(false);
     setEditingBookmark(null);
-    setBookmarkForm({ title: '', url: '', icon: '', description: '' });
+    setBookmarkForm({ title: '', url: '', lanUrl: '', icon: '', description: '' });
   };
 
   const handleEditBookmark = (bookmark: Bookmark) => {
@@ -89,6 +97,7 @@ export default function Bookmarks() {
     setBookmarkForm({
       title: bookmark.title,
       url: bookmark.url,
+      lanUrl: bookmark.lanUrl || '',
       icon: bookmark.icon,
       description: bookmark.description || '',
     });
@@ -100,6 +109,45 @@ export default function Bookmarks() {
     if (!activeCategory) return;
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     reorderBookmarks(activeCategory, index, targetIndex);
+  };
+
+  /** 获取 Favicon 链接 */
+  const getFaviconUrl = (url: string) => {
+    try {
+      const domain = new URL(url).hostname;
+      return `https://www.google.com/s2/favicons?sz=128&domain=${domain}`;
+    } catch {
+      return '';
+    }
+  };
+
+  /** 渲染预览图标 */
+  const renderItemIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
+    // 1. URL 图片
+    if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://'))) {
+      return (
+        <img
+          src={iconName}
+          className={`${size} object-contain`}
+          alt="icon"
+          onError={(e) => {
+            if (siteUrl) (e.target as HTMLImageElement).src = getFaviconUrl(siteUrl);
+          }}
+        />
+      );
+    }
+
+    // 2. Lucide 图标
+    const IconComponent = (Icons as any)[iconName];
+    if (IconComponent) return <IconComponent className={size} />;
+
+    // 3. 自动 Favicon
+    if (siteUrl) {
+      return <img src={getFaviconUrl(siteUrl)} className={`${size} object-contain`} alt="favicon" />;
+    }
+
+    // 4. 默认图标
+    return <Globe className={size} />;
   };
 
   return (
@@ -132,11 +180,10 @@ export default function Bookmarks() {
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
-                  activeCategory === category.id
-                    ? 'border-[#ec5b13] text-[#ec5b13]'
-                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                }`}
+                className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${activeCategory === category.id
+                  ? 'border-[#ec5b13] text-[#ec5b13]'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                  }`}
               >
                 {category.title}
                 <span className="text-xs ml-1 text-slate-400">({category.bookmarks.length})</span>
@@ -248,11 +295,7 @@ export default function Bookmarks() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden text-slate-500">
-                        {bookmark.icon.startsWith('http') ? (
-                          <img src={bookmark.icon} alt={bookmark.title} className="w-6 h-6 object-contain" />
-                        ) : (
-                          <LinkIcon className="w-5 h-5" />
-                        )}
+                        {renderItemIcon(bookmark.icon, bookmark.url, 'w-6 h-6')}
                       </div>
                     </td>
                     <td className="px-4 py-3 font-medium text-slate-900">{bookmark.title}</td>
@@ -345,22 +388,20 @@ export default function Bookmarks() {
                 <div className="flex gap-3 mt-1.5">
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, layout: 'card' })}
-                    className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      categoryForm.layout === 'card'
-                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
-                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
-                    }`}
+                    className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${categoryForm.layout === 'card'
+                      ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                      }`}
                   >
                     <LayoutList className="w-5 h-5" />
                     <span className="text-xs font-bold">展开卡片</span>
                   </button>
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, layout: 'grid' })}
-                    className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      categoryForm.layout === 'grid'
-                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
-                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
-                    }`}
+                    className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${categoryForm.layout === 'grid'
+                      ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                      }`}
                   >
                     <LayoutGrid className="w-5 h-5" />
                     <span className="text-xs font-bold">紧凑宫格</span>
@@ -372,22 +413,20 @@ export default function Bookmarks() {
                 <div className="flex gap-3 mt-1.5">
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, isHidden: false })}
-                    className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      !categoryForm.isHidden
-                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
-                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${!categoryForm.isHidden
+                      ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                      }`}
                   >
                     <Eye className="w-4 h-4" />
                     <span className="text-xs font-bold">公开</span>
                   </button>
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, isHidden: true })}
-                    className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      categoryForm.isHidden
-                        ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
-                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${categoryForm.isHidden
+                      ? 'border-[#ec5b13] bg-[#ec5b13]/5 text-[#ec5b13]'
+                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                      }`}
                   >
                     <EyeOff className="w-4 h-4" />
                     <span className="text-xs font-bold">隐藏</span>
@@ -448,6 +487,16 @@ export default function Bookmarks() {
                 />
               </div>
               <div>
+                <label className="text-sm font-semibold text-slate-700">内网地址（可选）</label>
+                <input
+                  type="text"
+                  className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
+                  placeholder="例如：http://192.168.1.10"
+                  value={bookmarkForm.lanUrl}
+                  onChange={(e) => setBookmarkForm({ ...bookmarkForm, lanUrl: e.target.value })}
+                />
+              </div>
+              <div>
                 <label className="text-sm font-semibold text-slate-700">描述（可选）</label>
                 <input
                   type="text"
@@ -462,12 +511,12 @@ export default function Bookmarks() {
                 <input
                   type="text"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="Google"
+                  placeholder="Google/URL链接"
                   value={bookmarkForm.icon}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, icon: e.target.value })}
                 />
                 <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
-                  <p>留空会自动抓取图标，也可填写网站 favicon URL</p>
+                  <p>留空会自动抓取图标，支持 SVG、WebP、PNG 等各种格式图标</p>
                   <p>点击 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline font-medium">图标库</a>，跳转到图标库</p>
                 </div>
               </div>
