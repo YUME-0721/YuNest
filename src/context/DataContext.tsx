@@ -290,7 +290,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
 
     const path = 'yunest_data.json';
-    const branch = 'data';
+    const branch = 'main';
     const stateToSave = { 
       ...state, 
       settings: { ...state.settings, githubToken: '', githubRepo: '' } 
@@ -379,7 +379,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
 
     const path = 'yunest_data.json';
-    const branch = 'data';
+    const branch = 'main';
     const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
