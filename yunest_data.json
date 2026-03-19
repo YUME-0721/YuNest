@@ -24,105 +24,120 @@
           "title": "GitHub",
           "url": "https://github.com",
           "description": "代码托管与协作",
-          "icon": ""
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=github.com",
+          "lanUrl": ""
         },
         {
           "id": "b2",
           "title": "Cloudflare",
           "url": "https://www.cloudflare.com",
           "description": "静态托管与 CDN",
-          "icon": ""
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.cloudflare.com",
+          "lanUrl": ""
         },
         {
           "id": "b3",
           "title": "Spaceship",
           "url": "https://www.spaceship.com",
           "description": "域名注册与管理",
-          "icon": ""
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.spaceship.com",
+          "lanUrl": ""
         },
         {
           "title": "EdgeOne",
           "url": "https://console.cloud.tencent.com/edgeone/zones",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773918330359.svg",
           "description": "腾讯云控制台",
-          "id": "b_1773746732296"
+          "id": "b_1773746732296",
+          "lanUrl": ""
         },
         {
           "title": "阿里图标库",
           "url": "https://www.iconfont.cn/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.iconfont.cn",
           "description": "阿里巴巴矢量图标库",
-          "id": "b_1773746827208"
+          "id": "b_1773746827208",
+          "lanUrl": ""
         },
         {
           "title": "DeepSeek",
           "url": "https://chat.deepseek.com/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=chat.deepseek.com",
           "description": "",
-          "id": "b_1773751191534"
+          "id": "b_1773751191534",
+          "lanUrl": ""
         },
         {
           "title": "豆包",
           "url": "https://www.doubao.com/chat/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.doubao.com",
           "description": "",
-          "id": "b_1773751213085"
+          "id": "b_1773751213085",
+          "lanUrl": ""
         },
         {
           "title": "Stitch",
           "url": "https://stitch.withgoogle.com/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=stitch.withgoogle.com",
           "description": "谷歌开发工具",
-          "id": "b_1773751243350"
+          "id": "b_1773751243350",
+          "lanUrl": ""
         },
         {
           "title": "AI Studio",
           "url": "https://aistudio.google.com/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=aistudio.google.com",
           "description": "Gemini AI 开发",
-          "id": "b_1773751261212"
+          "id": "b_1773751261212",
+          "lanUrl": ""
         },
         {
           "title": "huggingface",
           "url": "https://huggingface.co",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=huggingface.co",
           "description": "",
-          "id": "b_1773751322279"
+          "id": "b_1773751322279",
+          "lanUrl": ""
         },
         {
           "title": "IT Dog",
           "url": "https://www.itdog.cn/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.itdog.cn",
           "description": "测速网站",
-          "id": "b_1773751371613"
+          "id": "b_1773751371613",
+          "lanUrl": ""
         },
         {
           "title": "Dxomark",
           "url": "https://www.dxomark.cn/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.dxomark.cn",
           "description": "数码相机评分网站",
-          "id": "b_1773758211964"
+          "id": "b_1773758211964",
+          "lanUrl": ""
         },
         {
           "title": "华为云",
           "url": "https://console.huaweicloud.com/console/?region=ap-southeast-3#/home",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773915205980.svg",
           "description": "",
-          "id": "b_1773758276213"
+          "id": "b_1773758276213",
+          "lanUrl": ""
         },
         {
           "title": "有道翻译",
           "url": "https://fanyi.youdao.com/#/TextTranslate",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=fanyi.youdao.com",
           "description": "",
-          "id": "b_1773758465162"
+          "id": "b_1773758465162",
+          "lanUrl": ""
         },
         {
           "title": "晚霞分析",
           "url": "https://sunsetbot.top/",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773918906791.webp",
           "description": "",
-          "id": "b_1773759352379"
+          "id": "b_1773759352379",
+          "lanUrl": ""
         }
       ]
     },
@@ -136,107 +151,122 @@
         {
           "title": "bilibili",
           "url": "https://www.bilibili.com/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.bilibili.com",
           "description": "",
-          "id": "b_1773757801796"
+          "id": "b_1773757801796",
+          "lanUrl": ""
         },
         {
           "title": "YouTube",
           "url": "https://www.youtube.com/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.youtube.com",
           "description": "",
-          "id": "b_1773757883454"
+          "id": "b_1773757883454",
+          "lanUrl": ""
         },
         {
           "title": "TMDB",
           "url": "https://www.themoviedb.org/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=www.themoviedb.org",
           "description": "",
-          "id": "b_1773758035831"
+          "id": "b_1773758035831",
+          "lanUrl": ""
         },
         {
           "title": "Bangumi",
-          "url": "https://chii.in/",
-          "icon": "",
+          "url": "https://bangumi.tv/",
+          "icon": "https://img.072199.xyz/file/icon/1773919327243.svg",
           "description": "番剧论坛",
-          "id": "b_1773759099567"
+          "id": "b_1773759099567",
+          "lanUrl": ""
         },
         {
           "title": "博客",
           "url": "https://blog.yumekai.top/",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773919255909.svg",
           "description": "",
-          "id": "b_1773758063596"
+          "id": "b_1773758063596",
+          "lanUrl": ""
         },
         {
           "title": "图片画廊",
           "url": "https://pic.yumekai.top/",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773920589862.svg",
           "description": "",
-          "id": "b_1773758092965"
+          "id": "b_1773758092965",
+          "lanUrl": ""
         },
         {
           "title": "图床",
           "url": "https://img.072199.xyz/",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773920282966.svg",
           "description": "",
-          "id": "b_1773758106813"
+          "id": "b_1773758106813",
+          "lanUrl": ""
         },
         {
           "title": "Email",
           "url": "https://072199.xyz/",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773920531153.webp",
           "description": "",
-          "id": "b_1773758120685"
+          "id": "b_1773758120685",
+          "lanUrl": ""
         },
         {
           "title": "蜜柑计划",
           "url": "https://mikanani.me/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=mikanani.me",
           "description": "",
-          "id": "b_1773758594750"
+          "id": "b_1773758594750",
+          "lanUrl": ""
         },
         {
           "title": "爱恋动漫",
           "url": "http://www.kisssub.org/",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773920059590.webp",
           "description": "",
-          "id": "b_1773758669279"
+          "id": "b_1773758669279",
+          "lanUrl": ""
         },
         {
           "title": "Nyaa",
           "url": "https://nyaa.si/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=nyaa.si",
           "description": "",
-          "id": "b_1773758696800"
+          "id": "b_1773758696800",
+          "lanUrl": ""
         },
         {
           "title": "Anime字幕",
           "url": "https://bbs.acgrip.com/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=bbs.acgrip.com",
           "description": "",
-          "id": "b_1773758842463"
+          "id": "b_1773758842463",
+          "lanUrl": ""
         },
         {
           "title": "射手字幕",
           "url": "https://assrt.net/",
-          "icon": "",
+          "icon": "https://assrt.net/favicon.ico",
           "description": "",
-          "id": "b_1773758888360"
+          "id": "b_1773758888360",
+          "lanUrl": ""
         },
         {
           "title": "SubHd字幕",
           "url": "https://subhd.tv/",
-          "icon": "",
+          "icon": "https://www.google.com/s2/favicons?sz=128&domain=subhd.tv",
           "description": "",
-          "id": "b_1773758918608"
+          "id": "b_1773758918608",
+          "lanUrl": ""
         },
         {
           "title": "字幕库",
           "url": "https://srtku.com/",
-          "icon": "",
+          "icon": "https://img.072199.xyz/file/icon/1773919931256.webp",
           "description": "",
-          "id": "b_1773759256219"
+          "id": "b_1773759256219",
+          "lanUrl": ""
         }
       ]
     }
