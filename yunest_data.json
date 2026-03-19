@@ -1,7 +1,7 @@
 {
   "settings": {
     "siteName": "YuNest",
-    "wallpaperType": "color",
+    "wallpaperType": "api",
     "wallpaperUrl": "",
     "localWallpaper": "",
     "backgroundColor": "#000000",
@@ -13,7 +13,7 @@
   },
   "categories": [
     {
-      "layout": "card",
+      "layout": "grid",
       "isHidden": false,
       "id": "c1",
       "title": "工具",
@@ -24,35 +24,219 @@
           "title": "GitHub",
           "url": "https://github.com",
           "description": "代码托管与协作",
-          "icon": "Github"
+          "icon": ""
         },
         {
           "id": "b2",
           "title": "Cloudflare",
           "url": "https://www.cloudflare.com",
           "description": "静态托管与 CDN",
-          "icon": "Cloud"
+          "icon": ""
         },
         {
           "id": "b3",
           "title": "Spaceship",
           "url": "https://www.spaceship.com",
           "description": "域名注册与管理",
-          "icon": "Rocket"
+          "icon": ""
         },
         {
-          "id": "b4",
+          "title": "EdgeOne",
+          "url": "https://console.cloud.tencent.com/edgeone/zones",
+          "icon": "",
+          "description": "腾讯云控制台",
+          "id": "b_1773746732296"
+        },
+        {
+          "title": "阿里图标库",
+          "url": "https://www.iconfont.cn/",
+          "icon": "",
+          "description": "阿里巴巴矢量图标库",
+          "id": "b_1773746827208"
+        },
+        {
+          "title": "DeepSeek",
+          "url": "https://chat.deepseek.com/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773751191534"
+        },
+        {
+          "title": "豆包",
+          "url": "https://www.doubao.com/chat/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773751213085"
+        },
+        {
           "title": "Stitch",
-          "url": "https://stitch.mongodb.com",
-          "description": "无服务器后端服务",
-          "icon": "Cpu"
+          "url": "https://stitch.withgoogle.com/",
+          "icon": "",
+          "description": "谷歌开发工具",
+          "id": "b_1773751243350"
         },
         {
-          "id": "b5",
           "title": "AI Studio",
-          "url": "https://aistudio.google.com",
+          "url": "https://aistudio.google.com/",
+          "icon": "",
           "description": "Gemini AI 开发",
-          "icon": "Sparkles"
+          "id": "b_1773751261212"
+        },
+        {
+          "title": "huggingface",
+          "url": "https://huggingface.co",
+          "icon": "",
+          "description": "",
+          "id": "b_1773751322279"
+        },
+        {
+          "title": "IT Dog",
+          "url": "https://www.itdog.cn/",
+          "icon": "",
+          "description": "测速网站",
+          "id": "b_1773751371613"
+        },
+        {
+          "title": "Dxomark",
+          "url": "https://www.dxomark.cn/",
+          "icon": "",
+          "description": "数码相机评分网站",
+          "id": "b_1773758211964"
+        },
+        {
+          "title": "华为云",
+          "url": "https://console.huaweicloud.com/console/?region=ap-southeast-3#/home",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758276213"
+        },
+        {
+          "title": "有道翻译",
+          "url": "https://fanyi.youdao.com/#/TextTranslate",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758465162"
+        },
+        {
+          "title": "晚霞分析",
+          "url": "https://sunsetbot.top/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773759352379"
+        }
+      ]
+    },
+    {
+      "layout": "grid",
+      "isHidden": false,
+      "title": "影视娱乐",
+      "icon": "Folder",
+      "id": "c_1773746932345",
+      "bookmarks": [
+        {
+          "title": "bilibili",
+          "url": "https://www.bilibili.com/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773757801796"
+        },
+        {
+          "title": "YouTube",
+          "url": "https://www.youtube.com/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773757883454"
+        },
+        {
+          "title": "TMDB",
+          "url": "https://www.themoviedb.org/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758035831"
+        },
+        {
+          "title": "Bangumi",
+          "url": "https://chii.in/",
+          "icon": "",
+          "description": "番剧论坛",
+          "id": "b_1773759099567"
+        },
+        {
+          "title": "博客",
+          "url": "https://blog.yumekai.top/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758063596"
+        },
+        {
+          "title": "图片画廊",
+          "url": "https://pic.yumekai.top/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758092965"
+        },
+        {
+          "title": "图床",
+          "url": "https://img.072199.xyz/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758106813"
+        },
+        {
+          "title": "Email",
+          "url": "https://072199.xyz/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758120685"
+        },
+        {
+          "title": "蜜柑计划",
+          "url": "https://mikanani.me/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758594750"
+        },
+        {
+          "title": "爱恋动漫",
+          "url": "http://www.kisssub.org/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758669279"
+        },
+        {
+          "title": "Nyaa",
+          "url": "https://nyaa.si/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758696800"
+        },
+        {
+          "title": "Anime字幕",
+          "url": "https://bbs.acgrip.com/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758842463"
+        },
+        {
+          "title": "射手字幕",
+          "url": "https://assrt.net/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758888360"
+        },
+        {
+          "title": "SubHd字幕",
+          "url": "https://subhd.tv/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773758918608"
+        },
+        {
+          "title": "字幕库",
+          "url": "https://srtku.com/",
+          "icon": "",
+          "description": "",
+          "id": "b_1773759256219"
         }
       ]
     }
