@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "siteName": "YuNest",
+    "wallpaperType": "color",
+    "wallpaperUrl": "",
+    "localWallpaper": "",
+    "backgroundColor": "#000000",
+    "glassEffect": true,
+    "darkMask": true,
+    "searchEngine": "https://www.google.com/search?q=",
+    "githubToken": "",
+    "githubRepo": ""
+  },
+  "categories": [
+    {
+      "layout": "card",
+      "isHidden": false,
+      "id": "c1",
+      "title": "工具",
+      "icon": "Wrench",
+      "bookmarks": [
+        {
+          "id": "b1",
+          "title": "GitHub",
+          "url": "https://github.com",
+          "description": "代码托管与协作",
+          "icon": "Github"
+        },
+        {
+          "id": "b2",
+          "title": "Cloudflare",
+          "url": "https://www.cloudflare.com",
+          "description": "静态托管与 CDN",
+          "icon": "Cloud"
+        },
+        {
+          "id": "b3",
+          "title": "Spaceship",
+          "url": "https://www.spaceship.com",
+          "description": "域名注册与管理",
+          "icon": "Rocket"
+        },
+        {
+          "id": "b4",
+          "title": "Stitch",
+          "url": "https://stitch.mongodb.com",
+          "description": "无服务器后端服务",
+          "icon": "Cpu"
+        },
+        {
+          "id": "b5",
+          "title": "AI Studio",
+          "url": "https://aistudio.google.com",
+          "description": "Gemini AI 开发",
+          "icon": "Sparkles"
+        }
+      ]
+    }
+  ]
+}
