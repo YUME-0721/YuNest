@@ -53,6 +53,7 @@ export default function Home() {
   // 认证相关
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(false);
 
   // 根据设置的 searchEngine 匹配对应的预设引擎索引
@@ -63,6 +64,9 @@ export default function Home() {
   
   const [isScrolled, setIsScrolled] = useState(false);
   const isAdmin = useMemo(() => sessionStorage.getItem('yunest_auth') === 'true', []);
+  
+  // 背景加载相关
+  const [isBgLoaded, setIsBgLoaded] = useState(false);
   
   // 右键菜单相关
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, bookmark: any } | null>(null);
@@ -231,11 +235,20 @@ export default function Home() {
       {/* 背景壁纸层 */}
       <div className="fixed inset-0 z-0 overflow-hidden bg-[#0a0a0a]" 
         style={settings.wallpaperType === 'color' ? { backgroundColor: settings.backgroundColor } : {}}>
+        
+        {/* 加载占位层：展示一个美观的渐变，避免黑屏 */}
+        {settings.wallpaperType !== 'color' && !isBgLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1c2c] via-[#4a192c] to-[#121212] animate-pulse opacity-40" />
+        )}
+
         {settings.wallpaperType !== 'color' && (
           <img
             src={bgUrl}
             alt="Background"
-            className="w-full h-full object-cover opacity-80 animate-bg-fade-in animate-bg-drift"
+            onLoad={() => setIsBgLoaded(true)}
+            className={`w-full h-full object-cover animate-bg-drift transition-opacity duration-1000 ${
+              isBgLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               if (target.src !== 'https://pic.yumekai.top/pic?img=ua') {
@@ -245,10 +258,10 @@ export default function Home() {
           />
         )}
         {settings.darkMask && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80 pointer-events-none" />
         )}
         {settings.glassEffect && (
-          <div className="absolute inset-0 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 backdrop-blur-[6px] bg-black/2 pointer-events-none" />
         )}
       </div>
 
@@ -428,10 +441,10 @@ export default function Home() {
                 <div className="relative group">
                   <input
                     autoFocus
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="输入认证密码"
-                    className={`w-full py-4 px-6 glass rounded-2xl outline-none text-center text-lg tracking-[0.3em] font-bold transition-all duration-300 border ${
-                      authError ? 'border-red-500/50 text-red-100 bg-red-500/10 animate-shake' : 'border-white/5 focus:border-white/20'
+                    className={`w-full py-4 pl-6 pr-14 glass rounded-2xl outline-none text-center text-lg tracking-[0.3em] font-bold transition-all duration-300 border ${
+                      authError ? 'border-red-500/50 text-red-100 bg-red-500/10 animate-shake' : 'border-white/5 focus:border-white/20 text-white'
                     }`}
                     value={password}
                     onChange={(e) => {
@@ -439,6 +452,13 @@ export default function Home() {
                       if (authError) setAuthError(false);
                     }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-white/80 transition-all p-2 bg-white/5 rounded-xl hover:bg-white/10"
+                  >
+                    {showPassword ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
+                  </button>
                   {authError && (
                     <div className="mt-4 flex items-center justify-center gap-2 text-[11px] font-bold tracking-widest text-red-400/90 uppercase animate-fade-in">
                       <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />

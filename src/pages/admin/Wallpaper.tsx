@@ -228,7 +228,7 @@ export default function Wallpaper() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold">深色遮罩</p>
-                <p className="text-xs text-slate-500">壁纸上增加深色半透明渐变</p>
+                <p className="text-xs text-slate-500">加深上下边缘阴影，显著增强文字识别度</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
