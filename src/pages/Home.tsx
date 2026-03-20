@@ -16,8 +16,8 @@ import * as Icons from 'lucide-react';
 function getFaviconUrl(siteUrl: string): string {
   try {
     const url = new URL(siteUrl);
-    // 使用 Google S2 的高分辨率接口，缓存效果更好且速度较快
-    return `https://www.google.com/s2/favicons?sz=64&domain=${url.hostname}`;
+    // 切换至境内外访问更稳定的图标抓取服务，解决 Google S2 壁垒问题
+    return `https://favicon.im/${url.hostname}`;
   } catch {
     return '';
   }
