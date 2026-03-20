@@ -380,22 +380,35 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     const path = 'yunest_data.json';
     const branch = 'data';
-    const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
+    
+    // 1. 尝试从指定的 data 分支拉取
+    let response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github+json',
       }
     });
 
+    // 2. 如果之前放在 main 分支或者 data 分支还没准备好，尝试回退到主分支拉取
+    if (!response.ok && (response.status === 404 || response.status === 422)) {
+      response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+        }
+      });
+    }
+
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.message || '从仓库拉取失败');
     }
+
     const data = await response.json();
     const content = decodeURIComponent(escape(atob(data.content)));
     const parsedData = JSON.parse(content);
     
-    // 恢复本地凭证
+    // 恢复本地凭证，确保同步配置不丢失
     if (!parsedData.settings) parsedData.settings = {};
     parsedData.settings.githubToken = token;
     parsedData.settings.githubRepo = repo;
