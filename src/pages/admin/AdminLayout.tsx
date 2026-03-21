@@ -5,20 +5,23 @@
 
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { Settings, Tags, RefreshCw, Home, Menu, X, Image as ImageIcon } from 'lucide-react';
+import { Settings, Tags, RefreshCw, Home, Menu, X, Image as ImageIcon, MessageCircle } from 'lucide-react';
 import { useData } from '../../context/DataContext.tsx';
-
-const NAV_ITEMS = [
-  { to: '/admin/settings', icon: Settings, label: '个性化设置' },
-  { to: '/admin/bookmarks', icon: Tags, label: '管理标签' },
-  { to: '/admin/wallpaper', icon: ImageIcon, label: '壁纸与背景' },
-  { to: '/admin/backup', icon: RefreshCw, label: '备份与还原' },
-];
+import { TRANSLATIONS } from '../../i18n/translations.ts';
 
 export default function AdminLayout() {
   const { state } = useData();
+  const t = TRANSLATIONS[state.settings.language || 'zh-CN'];
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const NAV_ITEMS = [
+    { to: '/admin/settings', icon: Settings, label: t.navPersonalization },
+    { to: '/admin/bookmarks', icon: Tags, label: t.navBookmarks },
+    { to: '/admin/wallpaper', icon: ImageIcon, label: t.navWallpaper },
+    { to: '/admin/backup', icon: RefreshCw, label: t.navBackup },
+    { to: '/admin/feedback', icon: t.navFeedback.includes('反馈') ? MessageCircle : MessageCircle, label: t.navFeedback },
+  ];
 
   // 简单的路由守卫
   useEffect(() => {
@@ -53,7 +56,7 @@ export default function AdminLayout() {
           </div>
           <div>
             <h1 className="text-lg font-bold tracking-tight">{state.settings.siteName}</h1>
-            <p className="text-xs text-slate-500 font-medium">导航页</p>
+            <p className="text-xs text-slate-500 font-medium">{t.siteNav}</p>
           </div>
         </div>
 
@@ -85,7 +88,7 @@ export default function AdminLayout() {
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all duration-200 font-medium"
           >
             <Home className="w-5 h-5" />
-            <span className="text-sm">返回首页</span>
+            <span className="text-sm">{t.backToHome}</span>
           </Link>
         </div>
       </aside>
@@ -108,8 +111,19 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        <main className="flex-1 min-w-0 overflow-auto">
-          <Outlet />
+        <main className="flex-1 min-w-0 overflow-auto flex flex-col">
+          <div className="flex-1">
+            <Outlet />
+          </div>
+          
+          {/* 全局后台页脚 */}
+          <footer className="w-full max-w-4xl mx-auto px-6 sm:px-8 py-10 mt-auto">
+            <div className="border-t border-slate-200/60 pt-8 text-center">
+              <p className="text-slate-300 text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase">
+                {t.builtBy}
+              </p>
+            </div>
+          </footer>
         </main>
       </div>
     </div>

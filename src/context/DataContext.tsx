@@ -40,6 +40,8 @@ export interface Settings {
   searchEngine: string;
   githubToken?: string;
   githubRepo?: string; // 格式: owner/repo
+  language: 'zh-CN' | 'en-US';
+  timezone: string; // 时区 ID (如 Asia/Shanghai)
 }
 
 export interface AppState {
@@ -86,6 +88,8 @@ const defaultState: AppState = {
     searchEngine: 'https://www.google.com/search?q=',
     githubToken: envGithubToken,
     githubRepo: envGithubRepo,
+    language: 'zh-CN',
+    timezone: '', // 默认为空，跟随系统
   },
   categories: [
     {
@@ -105,6 +109,8 @@ const defaultState: AppState = {
         { id: 'b8', title: 'Supabase', url: 'https://supabase.com', description: '开源 Firebase 替代品', icon: '' },
         { id: 'b9', title: 'ChatGPT', url: 'https://chat.openai.com', description: 'OpenAI 智能会话', icon: '' },
         { id: 'b10', title: 'Claude', url: 'https://claude.ai', description: 'Anthropic 智能助手', icon: '' },
+        { id: 'b11', title: 'Hugging Face', url: 'https://huggingface.co', description: 'AI 开源模型协作平台', icon: '' },
+        { id: 'b12', title: 'Tailwind CSS', url: 'https://tailwindcss.com', description: '现代 CSS 样式框架', icon: '' },
       ],
     },
     {
@@ -114,16 +120,16 @@ const defaultState: AppState = {
       layout: 'card',
       isHidden: false,
       bookmarks: [
-        { id: 'b11', title: 'YouTube', url: 'https://www.youtube.com', description: '全球视频分享平台', icon: '' },
-        { id: 'b12', title: 'Facebook', url: 'https://www.facebook.com', description: '社交网络', icon: '' },
-        { id: 'b13', title: 'Twitter', url: 'https://twitter.com', description: '社交媒体 X', icon: '' },
-        { id: 'b14', title: 'Bilibili', url: 'https://www.bilibili.com', description: '中国最大的弹幕视频平台', icon: '' },
-        { id: 'b15', title: 'Pixiv', url: 'https://www.pixiv.net', description: '插画艺术交流网站', icon: '' },
-        { id: 'b16', title: 'TMDB', url: 'https://www.themoviedb.org', description: '电影与电视数据库', icon: '' },
-        { id: 'b17', title: 'TVDB', url: 'https://thetvdb.com', description: '电视节目数据库', icon: '' },
-        { id: 'b18', title: 'IMDb', url: 'https://www.imdb.com', description: '互联网电影资料库', icon: '' },
-        { id: 'b19', title: 'Bangumi', url: 'https://bgm.tv', description: '动漫番剧索引与记录', icon: '' },
-        { id: 'b20', title: 'Douban', url: 'https://www.douban.com', description: '书影音评分与记录', icon: '' },
+        { id: 'b13', title: 'YouTube', url: 'https://www.youtube.com', description: '全球视频分享平台', icon: '' },
+        { id: 'b14', title: 'Facebook', url: 'https://www.facebook.com', description: '社交网络', icon: '' },
+        { id: 'b15', title: 'Twitter', url: 'https://twitter.com', description: '社交媒体 X', icon: '' },
+        { id: 'b16', title: 'Bilibili', url: 'https://www.bilibili.com', description: '中国最大的弹幕视频平台', icon: '' },
+        { id: 'b17', title: 'Pixiv', url: 'https://www.pixiv.net', description: '插画艺术交流网站', icon: '' },
+        { id: 'b18', title: 'TMDB', url: 'https://www.themoviedb.org', description: '电影与电视数据库', icon: '' },
+        { id: 'b19', title: 'TVDB', url: 'https://thetvdb.com', description: '电视节目数据库', icon: '' },
+        { id: 'b20', title: 'IMDb', url: 'https://www.imdb.com', description: '互联网电影资料库', icon: '' },
+        { id: 'b21', title: 'Bangumi', url: 'https://bgm.tv', description: '动漫番剧索引与记录', icon: '' },
+        { id: 'b22', title: 'Douban', url: 'https://www.douban.com', description: '书影音评分与记录', icon: '' },
       ],
     },
   ],

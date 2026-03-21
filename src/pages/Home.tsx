@@ -5,9 +5,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData, PRESET_SEARCH_ENGINES } from '../context/DataContext.tsx';
-import { Search, Settings as SettingsIcon, ExternalLink, Lock, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { Search, Settings as SettingsIcon, ExternalLink, Lock, CheckCircle2, AlertCircle, X, Globe } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
+import { TRANSLATIONS } from '../i18n/translations.ts';
 
 /**
  * 根据域名自动获取 favicon
@@ -24,7 +25,7 @@ function getFaviconUrl(siteUrl: string): string {
 }
 
 /** 实时时钟 Hook */
-function useClock() {
+function useClock(timezoneID?: string, language: 'zh-CN' | 'en-US' = 'zh-CN') {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -32,20 +33,48 @@ function useClock() {
     return () => clearInterval(timer);
   }, []);
 
-  const time = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const date = now.toLocaleDateString('zh-CN', {
+  const getLocaleString = (options: Intl.DateTimeFormatOptions, isTime: boolean) => {
+    try {
+      if (isTime) {
+        return now.toLocaleTimeString(language, options);
+      }
+      return now.toLocaleDateString(language, options);
+    } catch (e) {
+      // 如果时区无效，fallback 到北京时间
+      const fallbackOptions = { ...options, timeZone: 'Asia/Shanghai' };
+      if (isTime) {
+        return now.toLocaleTimeString(language, fallbackOptions);
+      }
+      return now.toLocaleDateString(language, fallbackOptions);
+    }
+  };
+
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: timezoneID || undefined
+  };
+
+  const dateOptions: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     weekday: 'long',
-  });
+    timeZone: timezoneID || undefined
+  };
 
-  return { time, date };
+  return { 
+    time: getLocaleString(timeOptions, true), 
+    date: getLocaleString(dateOptions, false) 
+  };
 }
 
 export default function Home() {
   const { state } = useData();
   const { settings, categories } = state;
+  const t = TRANSLATIONS[settings.language || 'zh-CN'];
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -102,7 +131,8 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const { time, date } = useClock();
+  // 将 settings.timezone 传入 useClock
+  const { time, date } = useClock(settings.timezone, settings.language);
 
   const currentEngine = PRESET_SEARCH_ENGINES[engineIndex];
 
@@ -281,7 +311,7 @@ export default function Home() {
         <button
           onClick={openAuth}
           className="p-3 rounded-2xl glass text-white/40 hover:text-white/90 transition-all duration-300 hover:bg-white/10 group flex items-center justify-center border-0 cursor-pointer"
-          title="管理后台"
+          title={t.settingsIcon}
         >
           <SettingsIcon className="w-5 h-5 transition-transform duration-500 group-hover:rotate-90" />
         </button>
@@ -295,7 +325,15 @@ export default function Home() {
           <div className="text-5xl sm:text-6xl font-extralight tracking-tight text-white/90 mb-2 tabular-nums">
             {time}
           </div>
-          <p className="text-white/40 text-sm tracking-widest">{date}</p>
+          <div className="flex items-center justify-center gap-2">
+            <p className="text-white/40 text-sm tracking-widest">{date}</p>
+            {settings.timezone && (
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-[10px] text-white/20 font-medium uppercase tracking-tighter">
+                <Globe className="w-2.5 h-2.5" />
+                {settings.timezone.split('/').pop()?.replace('_', ' ')}
+              </span>
+            )}
+          </div>
         </header>
 
 
@@ -323,7 +361,7 @@ export default function Home() {
               type="text"
               id="search-input"
               className="w-full py-4 pl-14 pr-6 glass rounded-2xl focus:bg-white/10 transition-all duration-300 text-base font-light placeholder:text-white/20 outline-none text-white/90 border-0"
-              placeholder={`在 ${currentEngine.name} 中搜索...`}
+              placeholder={t.searchPlaceholder.replace('{engine}', currentEngine.name)}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearch}
@@ -404,14 +442,9 @@ export default function Home() {
 
         {/* 页脚 */}
         <footer className="mt-auto py-12 text-center animate-fade-in" style={{ animationDelay: '1.2s' }}>
-          <a
-            href="https://github.com/YUME-0721/YuNest"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[10px] font-medium tracking-[0.35em] uppercase text-white/20 hover:text-white/60 transition-all duration-500 hover:tracking-[0.45em]"
-          >
-            Built by YuNest
-          </a>
+          <p className="text-white/20 text-[10px] sm:text-xs font-bold tracking-[0.3em] uppercase transition-colors duration-500 hover:text-white/50 cursor-default">
+            {t.builtBy}
+          </p>
         </footer>
       </main>
 
@@ -433,8 +466,8 @@ export default function Home() {
               </div>
               
               <div>
-                <h3 className="text-xl font-bold text-white mb-2">管理认证</h3>
-                <p className="text-sm text-white/40 leading-relaxed">进入后台需要验证管理员密码</p>
+                <h3 className="text-xl font-bold text-white mb-2">{t.adminAuthTitle}</h3>
+                <p className="text-sm text-white/40 leading-relaxed">{t.adminAuthDesc}</p>
               </div>
 
               <form onSubmit={handleAdminAuth} className="w-full space-y-4">
@@ -442,7 +475,7 @@ export default function Home() {
                   <input
                     autoFocus
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="输入认证密码"
+                    placeholder={t.adminAuthInput}
                     className={`w-full py-4 pl-6 pr-14 glass rounded-2xl outline-none text-center text-lg tracking-[0.3em] font-bold transition-all duration-300 border ${
                       authError ? 'border-red-500/50 text-red-100 bg-red-500/10 animate-shake' : 'border-white/5 focus:border-white/20 text-white'
                     }`}
@@ -462,7 +495,7 @@ export default function Home() {
                   {authError && (
                     <div className="mt-4 flex items-center justify-center gap-2 text-[11px] font-bold tracking-widest text-red-400/90 uppercase animate-fade-in">
                       <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      密码认证失败，请核对后重试
+                      {t.authFailed}
                       <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                     </div>
                   )}
@@ -472,7 +505,7 @@ export default function Home() {
                   type="submit"
                   className="w-full py-4 bg-white text-black font-black rounded-2xl hover:bg-white/90 active:scale-95 transition-all shadow-xl shadow-white/5"
                 >
-                  进入后台
+                  {t.adminAuthSubmit}
                 </button>
               </form>
             </div>
@@ -490,40 +523,40 @@ export default function Home() {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-3 py-2 text-[10px] font-bold text-white/30 uppercase tracking-widest border-b border-white/5 mb-1">
-            打开方式
-          </div>
-          <button
-            onClick={() => {
-              window.open(contextMenu.bookmark.url, '_blank');
-              setContextMenu(null);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-all group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-              <Icons.Globe className="w-4 h-4 text-blue-400" />
+            <div className="px-3 py-2 text-[10px] font-bold text-white/30 uppercase tracking-widest border-b border-white/5 mb-1">
+              {t.openMethod}
             </div>
-            <div className="text-left">
-              <div className="text-xs font-bold leading-none mb-1">默认地址</div>
-              <div className="text-[10px] text-white/30 truncate w-24">公网/默认访问</div>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => {
-              window.open(contextMenu.bookmark.lanUrl, '_blank');
-              setContextMenu(null);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-all group mt-1"
-          >
-            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-              <Icons.Network className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-left">
-              <div className="text-xs font-bold leading-none mb-1">内网地址</div>
-              <div className="text-[10px] text-white/30 truncate w-24">局域网/私有访问</div>
-            </div>
-          </button>
+            <button
+              onClick={() => {
+                window.open(contextMenu.bookmark.url, '_blank');
+                setContextMenu(null);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-all group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Icons.Globe className="w-4 h-4 text-blue-400" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold leading-none mb-1">{t.defaultUrl}</div>
+                <div className="text-[10px] text-white/30 truncate w-24">{t.defaultUrlDesc}</div>
+              </div>
+            </button>
+            
+            <button
+              onClick={() => {
+                window.open(contextMenu.bookmark.lanUrl, '_blank');
+                setContextMenu(null);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 text-white/80 hover:text-white transition-all group mt-1"
+            >
+              <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+                <Icons.Network className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold leading-none mb-1">{t.lanUrl}</div>
+                <div className="text-[10px] text-white/30 truncate w-24">{t.lanUrlDesc}</div>
+              </div>
+            </button>
         </div>
       )}
     </div>

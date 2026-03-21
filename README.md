@@ -10,8 +10,9 @@
     <img src="https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflare-pages&logoColor=white" alt="Cloudflare" />
   </p>
   <h1>YuNest - Personal Navigation Hub</h1>
+  <p><strong><a href="https://nav.072199.xyz/">🚀 Click to Visit Demo Site</a></strong> (Password: <code>admin1234</code>)</p>
   <p>A modern, beautiful, and highly customizable personal static navigation and bookmark management tool.</p>
-  <p>Since YuNest is a pure frontend static application, you can easily run it locally or deploy it on any <a href="#☁️-static-hosting-cloud-deployment">Static Hosting Service</a> for free.</p>
+  <p>Since YuNest is a pure frontend static application, you can easily perform <a href="#-local-run--development">Local Deployment</a> or <a href="#-static-hosting-cloud-deployment">Static Hosting Cloud Deployment</a> (click to jump).</p>
 </div>
 
 ![Home Screenshot](screenshots/homepage.png)
@@ -125,4 +126,8 @@ Run `npm run build` and upload the contents of the `dist` folder to your web ser
 
 ## 📄 License
 
-This project is licensed under the **MIT** License.
+This project is licensed under **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**.
+
+- **Non-Commercial Use Only**: You may not use this material for commercial purposes.
+- **Attribution Required**: You must give appropriate credit to the original author **YUME-0721** and provide a link to the project repository.
+- **Refer to the `LICENSE` file in the root directory for more details.**

@@ -6,7 +6,8 @@
 import React, { useState } from 'react';
 import { useData, type Category, type Bookmark } from '../../context/DataContext.tsx';
 import * as Icons from 'lucide-react';
-import { Plus, Edit2, Trash2, FolderOpen, Link as LinkIcon, ChevronUp, ChevronDown, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderOpen, ChevronUp, ChevronDown, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe } from 'lucide-react';
+import { TRANSLATIONS } from '../../i18n/translations.ts';
 
 export default function Bookmarks() {
   const {
@@ -20,6 +21,7 @@ export default function Bookmarks() {
     deleteBookmark,
     reorderBookmarks,
   } = useData();
+  const t = TRANSLATIONS[state.settings.language || 'zh-CN'];
   const [activeCategory, setActiveCategory] = useState<string>(state.categories[0]?.id || '');
 
   // 分类模态框状态
@@ -65,7 +67,7 @@ export default function Bookmarks() {
   };
 
   const handleDeleteCategory = (id: string) => {
-    if (!window.confirm('确定要删除该分类及其下所有书签吗？')) return;
+    if (!window.confirm(t.confirmDeleteCategory)) return;
     deleteCategory(id);
     // NOTE: 删除后自动切换到第一个分类
     const remaining = state.categories.filter((c) => c.id !== id);
@@ -155,8 +157,8 @@ export default function Bookmarks() {
       {/* 页面标题 */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-3xl font-extrabold tracking-tight">书签目录管理</h2>
-          <p className="text-slate-500">管理您的书签分类及站点信息</p>
+          <h2 className="text-3xl font-extrabold tracking-tight">{t.bookmarksTitle}</h2>
+          <p className="text-slate-500">{t.bookmarksDesc}</p>
         </div>
         <button
           id="add-category-btn"
@@ -168,7 +170,7 @@ export default function Bookmarks() {
           className="px-4 py-2.5 bg-[#ec5b13] text-white rounded-xl text-sm font-semibold hover:bg-[#ec5b13]/90 transition-all flex items-center gap-2 shadow-lg shadow-[#ec5b13]/20 self-start sm:self-auto"
         >
           <Plus className="w-5 h-5" />
-          添加分类
+          {t.addCategory}
         </button>
       </div>
 
@@ -204,21 +206,21 @@ export default function Bookmarks() {
               {currentCategory.isHidden && (
                 <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold">
                   <Lock className="w-2.5 h-2.5" />
-                  隐藏
+                  {t.visibilityHidden.match(/\(([^)]+)\)/)?.[1] || 'Hidden'}
                 </span>
               )}
               <div className="flex items-center gap-1 ml-2">
                 <button
                   onClick={() => handleEditCategory(currentCategory)}
                   className="p-1.5 rounded-md text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/5 transition-all"
-                  title="编辑分类"
+                  title={t.editCategory}
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDeleteCategory(currentCategory.id)}
                   className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                  title="删除分类"
+                  title={t.deleteCategory}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -227,7 +229,7 @@ export default function Bookmarks() {
                   <button
                     onClick={() => reorderCategories(currentCategoryIndex, currentCategoryIndex - 1)}
                     className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
-                    title="上移分类"
+                    title="Up"
                   >
                     <ChevronUp className="w-3.5 h-3.5" />
                   </button>
@@ -236,7 +238,7 @@ export default function Bookmarks() {
                   <button
                     onClick={() => reorderCategories(currentCategoryIndex, currentCategoryIndex + 1)}
                     className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
-                    title="下移分类"
+                    title="Down"
                   >
                     <ChevronDown className="w-3.5 h-3.5" />
                   </button>
@@ -247,13 +249,13 @@ export default function Bookmarks() {
               id="add-bookmark-btn"
               onClick={() => {
                 setEditingBookmark(null);
-                setBookmarkForm({ title: '', url: '', icon: '', description: '' });
+                setBookmarkForm({ title: '', url: '', lanUrl: '', icon: '', description: '' });
                 setIsBookmarkModalOpen(true);
               }}
               className="text-[#ec5b13] text-sm font-semibold flex items-center gap-1 hover:underline"
             >
               <Plus className="w-4 h-4" />
-              添加新站点
+              {t.addNewBookmark}
             </button>
           </div>
 
@@ -263,11 +265,11 @@ export default function Bookmarks() {
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
                   <th className="px-4 py-3 font-semibold w-8"></th>
-                  <th className="px-4 py-3 font-semibold w-14">图标</th>
-                  <th className="px-4 py-3 font-semibold">名称</th>
-                  <th className="px-4 py-3 font-semibold hidden sm:table-cell">URL 地址</th>
-                  <th className="px-4 py-3 font-semibold hidden md:table-cell">描述</th>
-                  <th className="px-4 py-3 font-semibold text-right">操作</th>
+                  <th className="px-4 py-3 font-semibold w-14">{t.tableIcon}</th>
+                  <th className="px-4 py-3 font-semibold">{t.tableName}</th>
+                  <th className="px-4 py-3 font-semibold hidden sm:table-cell">{t.tableUrl}</th>
+                  <th className="px-4 py-3 font-semibold hidden md:table-cell">{t.tableDesc}</th>
+                  <th className="px-4 py-3 font-semibold text-right">{t.tableActions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -315,7 +317,7 @@ export default function Bookmarks() {
                         </button>
                         <button
                           onClick={() => {
-                            if (window.confirm(`确定删除「${bookmark.title}」？`)) {
+                            if (window.confirm(t.deleteConfirmBookmark)) {
                               deleteBookmark(currentCategory.id, bookmark.id);
                             }
                           }}
@@ -332,7 +334,7 @@ export default function Bookmarks() {
                     <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-2">
                         <FolderOpen className="w-10 h-10 text-slate-300" />
-                        <p>暂无站点，点击上方「添加新站点」开始</p>
+                        <p>{t.emptyBookmarks}</p>
                       </div>
                     </td>
                   </tr>
@@ -347,8 +349,8 @@ export default function Bookmarks() {
       {state.categories.length === 0 && (
         <div className="text-center py-20">
           <FolderOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-500 mb-2">还没有任何分类</h3>
-          <p className="text-slate-400 mb-6">点击上方「添加分类」按钮创建第一个分组</p>
+          <h3 className="text-lg font-semibold text-slate-500 mb-2">{t.emptyCategories}</h3>
+          <p className="text-slate-400 mb-6">{t.emptyCategoriesDesc}</p>
         </div>
       )}
 
@@ -356,35 +358,37 @@ export default function Bookmarks() {
       {isCategoryModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsCategoryModalOpen(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold">{editingCategory ? '编辑分类' : '添加分类'}</h3>
+            <h3 className="text-xl font-bold">{editingCategory ? t.editCategory : t.addCategory}</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold text-slate-700">分类名称</label>
+                <label className="text-sm font-semibold text-slate-700">{t.categoryName}</label>
                 <input
                   type="text"
                   id="category-name-input"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="例如：开发工具"
+                  placeholder="..."
                   value={categoryForm.title}
                   onChange={(e) => setCategoryForm({ ...categoryForm, title: e.target.value })}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">图标</label>
+                <label className="text-sm font-semibold text-slate-700">{t.categoryIconLabel}</label>
                 <input
                   type="text"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="Lucide 图标名或图片 URL"
+                  placeholder={t.categoryIconDesc}
                   value={categoryForm.icon}
                   onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
                 />
                 <p className="text-xs text-slate-400 mt-1">
-                  支持 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline">Lucide 图标名</a> 或图片 URL
+                  {t.categoryIconDesc.includes('支持') ? '支持 ' : 'Supports '}
+                  <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline">{t.iconsLibrary}</a> 
+                  {t.categoryIconDesc.includes('支持') ? ' 或图片 URL' : ' or Image URL'}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">展示模式</label>
+                <label className="text-sm font-semibold text-slate-700">{t.categoryLayoutLabel}</label>
                 <div className="flex gap-3 mt-1.5">
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, layout: 'card' })}
@@ -394,7 +398,7 @@ export default function Bookmarks() {
                       }`}
                   >
                     <LayoutList className="w-5 h-5" />
-                    <span className="text-xs font-bold">展开卡片</span>
+                    <span className="text-xs font-bold">{t.layoutCard.split(' ')[0]}</span>
                   </button>
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, layout: 'grid' })}
@@ -404,12 +408,12 @@ export default function Bookmarks() {
                       }`}
                   >
                     <LayoutGrid className="w-5 h-5" />
-                    <span className="text-xs font-bold">紧凑宫格</span>
+                    <span className="text-xs font-bold">{t.layoutGrid.split(' ')[0]}</span>
                   </button>
                 </div>
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">可见性</label>
+                <label className="text-sm font-semibold text-slate-700">{t.categoryVisibility}</label>
                 <div className="flex gap-3 mt-1.5">
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, isHidden: false })}
@@ -419,7 +423,7 @@ export default function Bookmarks() {
                       }`}
                   >
                     <Eye className="w-4 h-4" />
-                    <span className="text-xs font-bold">公开</span>
+                    <span className="text-xs font-bold">{t.visibilityPublic.split(' ')[0]}</span>
                   </button>
                   <button
                     onClick={() => setCategoryForm({ ...categoryForm, isHidden: true })}
@@ -429,12 +433,12 @@ export default function Bookmarks() {
                       }`}
                   >
                     <EyeOff className="w-4 h-4" />
-                    <span className="text-xs font-bold">隐藏</span>
+                    <span className="text-xs font-bold">{t.visibilityHidden.match(/^([^\(]+)/)?.[1].trim() || 'Hidden'}</span>
                   </button>
                 </div>
                 {categoryForm.isHidden && (
                   <p className="text-[10px] text-slate-400 mt-2 ml-1">
-                    * 隐藏分组仅在管理员 <span className="text-[#ec5b13]">在线认证</span> 后才会显示在该页面。
+                    {t.visibilityHiddenDesc}
                   </p>
                 )}
               </div>
@@ -444,13 +448,13 @@ export default function Bookmarks() {
                 onClick={() => setIsCategoryModalOpen(false)}
                 className="px-5 py-2.5 rounded-xl border border-slate-200 font-medium hover:bg-slate-50 transition-colors"
               >
-                取消
+                {t.cancel}
               </button>
               <button
                 onClick={handleSaveCategory}
                 className="px-5 py-2.5 rounded-xl bg-[#ec5b13] text-white font-semibold hover:bg-[#ec5b13]/90 transition-colors shadow-lg shadow-[#ec5b13]/20"
               >
-                保存
+                {t.save}
               </button>
             </div>
           </div>
@@ -461,22 +465,22 @@ export default function Bookmarks() {
       {isBookmarkModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsBookmarkModalOpen(false)}>
           <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold">{editingBookmark ? '编辑站点' : '添加站点'}</h3>
+            <h3 className="text-xl font-bold">{editingBookmark ? t.editBookmark : t.addBookmark}</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-semibold text-slate-700">站点名称</label>
+                <label className="text-sm font-semibold text-slate-700">{t.bookmarkTitle}</label>
                 <input
                   type="text"
                   id="bookmark-name-input"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="例如：GitHub"
+                  placeholder="..."
                   value={bookmarkForm.title}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, title: e.target.value })}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">URL 地址</label>
+                <label className="text-sm font-semibold text-slate-700">{t.bookmarkUrl}</label>
                 <input
                   type="text"
                   id="bookmark-url-input"
@@ -487,37 +491,37 @@ export default function Bookmarks() {
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">内网地址（可选）</label>
+                <label className="text-sm font-semibold text-slate-700">{t.bookmarkLanUrl}</label>
                 <input
                   type="text"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="例如：http://192.168.1.10"
+                  placeholder="http://192.168.1.10"
                   value={bookmarkForm.lanUrl}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, lanUrl: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">描述（可选）</label>
+                <label className="text-sm font-semibold text-slate-700">{t.bookmarkDesc}</label>
                 <input
                   type="text"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="简短描述该站点"
+                  placeholder="..."
                   value={bookmarkForm.description}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, description: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-700">图标（可选）</label>
+                <label className="text-sm font-semibold text-slate-700">{t.bookmarkIcon}</label>
                 <input
                   type="text"
                   className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="Google/URL链接"
+                  placeholder="URL / Lucide"
                   value={bookmarkForm.icon}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, icon: e.target.value })}
                 />
                 <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
-                  <p>留空会自动抓取图标，支持 SVG、WebP、PNG 等各种格式图标</p>
-                  <p>点击 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline font-medium">图标库</a>，跳转到图标库</p>
+                  <p>{t.autoFaviconTip}</p>
+                  <p>{state.settings.language === 'zh-CN' ? '点击 ' : 'Click '} <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline font-medium">{t.iconsLibrary}</a>，{state.settings.language === 'zh-CN' ? '跳转到图标库' : 'jump to icons library'}</p>
                 </div>
               </div>
             </div>
@@ -526,13 +530,13 @@ export default function Bookmarks() {
                 onClick={() => setIsBookmarkModalOpen(false)}
                 className="px-5 py-2.5 rounded-xl border border-slate-200 font-medium hover:bg-slate-50 transition-colors"
               >
-                取消
+                {t.cancel}
               </button>
               <button
                 onClick={handleSaveBookmark}
                 className="px-5 py-2.5 rounded-xl bg-[#ec5b13] text-white font-semibold hover:bg-[#ec5b13]/90 transition-colors shadow-lg shadow-[#ec5b13]/20"
               >
-                保存
+                {t.save}
               </button>
             </div>
           </div>

@@ -11,6 +11,7 @@ import Settings from './pages/admin/Settings.tsx';
 import Bookmarks from './pages/admin/Bookmarks.tsx';
 import Wallpaper from './pages/admin/Wallpaper.tsx';
 import Backup from './pages/admin/Backup.tsx';
+import Feedback from './pages/admin/Feedback.tsx';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="bookmarks" element={<Bookmarks />} />
             <Route path="wallpaper" element={<Wallpaper />} />
             <Route path="backup" element={<Backup />} />
+            <Route path="feedback" element={<Feedback />} />
           </Route>
         </Routes>
       </HashRouter>

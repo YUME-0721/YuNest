@@ -4,13 +4,14 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { useData, PRESET_SEARCH_ENGINES } from '../../context/DataContext.tsx';
+import { useData } from '../../context/DataContext.tsx';
 import { Image as ImageIcon, CheckCircle, Upload, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { TRANSLATIONS } from '../../i18n/translations.ts';
 
 export default function Wallpaper() {
   const { state, updateSettings } = useData();
   const [localSettings, setLocalSettings] = useState(state.settings);
+  const t = TRANSLATIONS[state.settings.language || 'zh-CN'];
   const [saved, setSaved] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(state.settings.wallpaperUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +34,7 @@ export default function Wallpaper() {
 
     // NOTE: 限制文件大小，localStorage 空间有限
     if (file.size > 5 * 1024 * 1024) {
-      alert('图片大小不能超过 5MB');
+      alert(t.uploadLimit);
       return;
     }
 
@@ -67,11 +68,11 @@ export default function Wallpaper() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 sm:p-8 space-y-8">
+    <div className="max-w-4xl mx-auto p-6 sm:p-8 space-y-8 text-slate-900">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-slate-900">壁纸与背景</h2>
-          <p className="text-slate-500 mt-2">定制您的导航页背景视觉效果</p>
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">{t.wallpaperTitle}</h2>
+          <p className="text-slate-500 mt-2">{t.wallpaperDesc}</p>
         </div>
       </header>
 
@@ -87,7 +88,7 @@ export default function Wallpaper() {
               {localSettings.wallpaperType === 'color' ? (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-lg border border-white/20 text-white text-xs font-medium">
-                    纯色背景预览: {localSettings.backgroundColor}
+                    {t.previewLabel}: {localSettings.backgroundColor}
                   </div>
                 </div>
               ) : (
@@ -95,7 +96,7 @@ export default function Wallpaper() {
                   {getEffectivePreviewUrl() ? (
                     <img
                       src={getEffectivePreviewUrl()}
-                      alt="壁纸预览"
+                      alt={t.previewLabel}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
@@ -109,7 +110,7 @@ export default function Wallpaper() {
                 <button
                   onClick={refreshPreview}
                   className="absolute bottom-3 right-3 p-2 rounded-lg bg-black/40 text-white/80 hover:bg-black/60 transition-colors opacity-0 group-hover:opacity-100"
-                  title="刷新预览"
+                  title={t.previewLabel}
                 >
                   <RefreshCw className="w-4 h-4" />
                 </button>
@@ -120,10 +121,10 @@ export default function Wallpaper() {
             <div className="flex flex-col gap-4">
               {/* 壁纸类型 */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <p className="text-sm font-semibold mb-2">壁纸类型</p>
+                <p className="text-sm font-semibold mb-2">{t.wallpaperType}</p>
                 <select
                   id="setting-wallpaper-type"
-                  className="w-full rounded-lg border-slate-200 bg-white px-3 py-2.5 text-sm outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
+                  className="w-full rounded-lg border-slate-200 bg-white px-3 py-2.5 text-sm outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors font-medium"
                   value={localSettings.wallpaperType}
                   onChange={(e) => {
                     const type = e.target.value as 'fixed' | 'api' | 'local' | 'color';
@@ -137,24 +138,24 @@ export default function Wallpaper() {
                     }
                   }}
                 >
-                  <option value="fixed">固定图片链接</option>
-                  <option value="api">随机图 API</option>
-                  <option value="local">本地上传</option>
-                  <option value="color">纯色背景</option>
+                  <option value="fixed">{t.typeFixed}</option>
+                  <option value="api">{t.typeApi}</option>
+                  <option value="local">{t.typeLocal}</option>
+                  <option value="color">{t.typeColor}</option>
                 </select>
               </div>
 
               {/* 根据类型显示不同的输入 */}
               {localSettings.wallpaperType === 'local' ? (
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-sm font-semibold mb-2">上传本地壁纸</p>
+                  <p className="text-sm font-semibold mb-2">{t.typeLocal}</p>
                   <div
                     className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center cursor-pointer hover:border-[#ec5b13]/40 transition-colors"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500">点击选择图片</p>
-                    <p className="text-xs text-slate-400 mt-1">支持 JPG/PNG/WebP，不超过 5MB</p>
+                    <p className="text-sm font-medium text-slate-500">{t.uploadLabel}</p>
+                    <p className="text-[10px] text-slate-400 mt-1">支持 JPG/PNG/WebP, {t.uploadLimit}</p>
                   </div>
                   <input
                     ref={fileInputRef}
@@ -166,7 +167,7 @@ export default function Wallpaper() {
                 </div>
               ) : localSettings.wallpaperType === 'color' ? (
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-sm font-semibold mb-3">背景颜色</p>
+                  <p className="text-sm font-semibold mb-3">{t.bgColorLabel}</p>
                   <div className="flex items-center gap-4">
                     <input
                       type="color"
@@ -184,25 +185,23 @@ export default function Wallpaper() {
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-2">支持拖动色板或输入 Hex 颜色代码</p>
                 </div>
               ) : (
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
                   <p className="text-sm font-semibold mb-2">
-                    {localSettings.wallpaperType === 'api' ? 'API 地址' : '图片链接'}
+                    {localSettings.wallpaperType === 'api' ? t.typeApi : t.imageUrlLabel}
                   </p>
                   <input
                     type="text"
                     id="setting-wallpaper-url"
-                    className="w-full rounded-lg border-slate-200 bg-white px-3 py-2.5 text-sm outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors placeholder:text-slate-300"
-                    placeholder="例如: https://pic.yumekai.top/pic?img=ua"
+                    className="w-full rounded-lg border-slate-200 bg-white px-3 py-2.5 text-sm outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors placeholder:text-slate-300 font-medium"
+                    placeholder="https://..."
                     value={localSettings.wallpaperUrl}
                     onChange={(e) => {
                       setLocalSettings({ ...localSettings, wallpaperUrl: e.target.value });
                       setPreviewUrl(e.target.value);
                     }}
                   />
-                  <p className="text-[10px] text-slate-400 mt-2">支持静态图链接或随机图 API 地址</p>
                 </div>
               )}
             </div>
@@ -210,10 +209,10 @@ export default function Wallpaper() {
 
           {/* 视觉效果开关 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50">
               <div>
-                <p className="text-sm font-semibold">玻璃拟态效果</p>
-                <p className="text-xs text-slate-500">磨砂玻璃般的模糊透明质感</p>
+                <p className="text-[13px] font-bold">{t.glassEffectLabel}</p>
+                <p className="text-[10px] text-slate-400 mt-1">{t.glassEffectDesc}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -225,10 +224,10 @@ export default function Wallpaper() {
                 <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ec5b13]" />
               </label>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50">
               <div>
-                <p className="text-sm font-semibold">深色遮罩</p>
-                <p className="text-xs text-slate-500">加深上下边缘阴影，显著增强文字识别度</p>
+                <p className="text-[13px] font-bold">{t.darkMaskLabel}</p>
+                <p className="text-[10px] text-slate-400 mt-1">{t.darkMaskDesc}</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -245,16 +244,6 @@ export default function Wallpaper() {
 
         {/* 保存栏 */}
         <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-6 sm:-mx-8 px-6 sm:px-8 py-6 flex flex-col items-end gap-3 mt-8 pointer-events-none">
-          {localSettings.wallpaperType !== 'color' && localSettings.wallpaperType !== 'local' && !localSettings.wallpaperUrl && (
-            <p className="text-[10px] text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-full border border-slate-100 pointer-events-auto">
-              提示: 未填写地址将使用系统默认壁纸
-            </p>
-          )}
-          {localSettings.wallpaperType === 'local' && !localSettings.localWallpaper && (
-            <p className="text-[10px] text-amber-500 font-medium bg-amber-50 px-3 py-1 rounded-full border border-amber-100 pointer-events-auto">
-              注意: 未上传图片将显示系统默认背景
-            </p>
-          )}
           <button
             onClick={handleSave}
             className={`px-8 py-3 rounded-xl font-bold shadow-2xl transition-all flex items-center gap-2 pointer-events-auto ${
@@ -266,10 +255,10 @@ export default function Wallpaper() {
             {saved ? (
               <>
                 <CheckCircle className="w-4 h-4" />
-                已保存
+                {t.saved}
               </>
             ) : (
-              '保存设置'
+              t.saveSettings
             )}
           </button>
         </footer>
