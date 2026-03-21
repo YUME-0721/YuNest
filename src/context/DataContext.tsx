@@ -77,8 +77,8 @@ const envGithubRepo = (import.meta as any).env.VITE_GITHUB_REPO || '';
 const defaultState: AppState = {
   settings: {
     siteName: 'YuNest',
-    wallpaperType: 'color',
-    wallpaperUrl: '',
+    wallpaperType: 'fixed',
+    wallpaperUrl: 'https://img.072199.xyz/file/wallpaper/1773289345749.webp',
     localWallpaper: '',
     backgroundColor: '#000000',
     glassEffect: true,
