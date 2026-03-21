@@ -289,54 +289,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const repo = repoOverride || state.settings.githubRepo;
     if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
 
-    const path = 'yunest_data.json';
-    const branch = 'data';
+    const path = 'data/yunest_data.json';
+    // 默认推送到 main 分支，配合 Cloudflare Ignore Paths 使用效果最佳
+    const branch = 'main'; 
     const stateToSave = { 
       ...state, 
       settings: { ...state.settings, githubToken: '', githubRepo: '' } 
     };
 
-    // 1. 确保分支存在，如果不存在则尝试创建
-    const branchRes = await fetch(`https://api.github.com/repos/${repo}/branches/${branch}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!branchRes.ok) {
-      // 获取默认分支
-      const repoRes = await fetch(`https://api.github.com/repos/${repo}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!repoRes.ok) throw new Error('无法访问仓库，请检查 Token 和仓库名');
-      const repoData = await repoRes.json();
-      const defaultBranch = repoData.default_branch;
-
-      // 获取默认分支最新的 SHA
-      const latestRes = await fetch(`https://api.github.com/repos/${repo}/git/refs/heads/${defaultBranch}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!latestRes.ok) throw new Error(`无法获取 ${defaultBranch} 分支状态`);
-      const latestData = await latestRes.json();
-      const latestSha = latestData.object.sha;
-
-      // 创建 data 分支
-      const createBranchRes = await fetch(`https://api.github.com/repos/${repo}/git/refs`, {
-        method: 'POST',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ref: `refs/heads/${branch}`,
-          sha: latestSha
-        })
-      });
-      if (!createBranchRes.ok) {
-        const err = await createBranchRes.json().catch(() => ({}));
-        throw new Error(err.message || '创建 data 分支失败');
-      }
-    }
-
-    // 2. 获取现有文件的 SHA
+    // 1. 获取现有文件的 SHA (如果文件已存在)
     let sha = '';
     const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
       headers: { 
@@ -345,7 +306,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
     });
     
-    if (getRes.ok) {
+    // 如果 main 失败，尝试 master
+    let actualBranch = branch;
+    if (!getRes.ok && getRes.status === 404) {
+      const masterRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=master`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
+        }
+      });
+      if (masterRes.ok) {
+        const existingMaster = await masterRes.json();
+        sha = existingMaster.sha;
+        actualBranch = 'master';
+      }
+    } else if (getRes.ok) {
       const existing = await getRes.json();
       sha = existing.sha;
     }
@@ -362,7 +337,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         message: 'YuNest Data Sync',
         content: btoa(unescape(encodeURIComponent(JSON.stringify(stateToSave, null, 2)))),
         sha: sha || undefined,
-        branch: branch
+        branch: actualBranch
       })
     });
 
@@ -378,20 +353,30 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const repo = repoOverride || state.settings.githubRepo;
     if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
 
-    const path = 'yunest_data.json';
-    const branch = 'data';
+    const path = 'data/yunest_data.json';
+    const oldPath = 'yunest_data.json';
     
-    // 1. 尝试从指定的 data 分支拉取
-    let response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
+    // 1. 优先尝试从 main 分支的 data/ 目录下读取
+    let response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github+json',
       }
     });
 
-    // 2. 如果之前放在 main 分支或者 data 分支还没准备好，尝试回退到主分支拉取
-    if (!response.ok && (response.status === 404 || response.status === 422)) {
-      response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    // 2. 如果不存在，尝试从根目录读取（兼容旧版本）
+    if (!response.ok && response.status === 404) {
+      response = await fetch(`https://api.github.com/repos/${repo}/contents/${oldPath}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+        }
+      });
+    }
+
+    // 3. 如果还是不存在，尝试从 data 分支读取（兼容上一版设计）
+    if (!response.ok && response.status === 404) {
+      response = await fetch(`https://api.github.com/repos/${repo}/contents/${oldPath}?ref=data`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.github+json',
