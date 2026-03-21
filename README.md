@@ -50,6 +50,20 @@ YuNest focuses on providing the most elegant "Start Page" experience. All conten
 
 ---
 
+## 📋 Prerequisites
+
+Before starting the deployment, it is recommended to prepare the credentials required for GitHub automatic synchronization (optional but highly recommended):
+
+1. **Get GitHub Token**:
+   - Visit GitHub [Settings -> Developer settings](https://github.com/settings/tokens).
+   - Generate a new **Personal Access Token (classic)**.
+   - **Scopes**: Select **`repo`** for private repositories or **`public_repo`** for public repositories.
+2. **Determine Sync Repo Name**:
+   - Format is `YourUsername/RepoName`, e.g., `YUME-0721/YuNest`.
+   - **Privacy Suggestion**: If you want your code to be public but your bookmark data private, it is recommended to create a separate **Private Repository** for data storage.
+
+---
+
 ## 🚀 Deployment
 
 YuNest provides an extremely simple deployment process.
@@ -71,7 +85,7 @@ Suitable for users who want to customize the code further or run it in a private
 4. **Environment Config**:
    - Copy `.env.example` to `.env`.
    - **VITE_ADMIN_PASSWORD**: Set your admin panel password (required, default `123456`).
-   - **VITE_GITHUB_TOKEN / REPO**: (Optional) Pre-set your credentials for cloud sync.
+   - **VITE_GITHUB_TOKEN / REPO**: Enter the credentials prepared above.
 5. **Start Dev Server**:
    ```bash
    npm run dev
@@ -85,41 +99,27 @@ Suitable for users who want to customize the code further or run it in a private
 **Most Recommended.** YuNest can run permanently for free as a static site.
 
 #### 1. Quick Deployment (Cloudflare Pages / Vercel)
-1. **Fork this Repo**: Click **Fork** to copy the code to your GitHub account (Recommended to Fork as a **Private Repo** if you want to keep your bookmarks secret).
+1. **Fork this Repo**: Click **Fork** to copy the code to your GitHub account.
 2. **Import Project**: Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) or Vercel and import your forked repo.
 3. **Build Config**:
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
 4. **Environment Variables**:
-   - Add `VITE_ADMIN_PASSWORD` in the platform's Environment Variables settings.
-   - (Optional) Add `VITE_GITHUB_TOKEN` and `VITE_GITHUB_REPO`.
+   - Add the following in the platform's Environment Variables settings:
+     - **VITE_ADMIN_PASSWORD**: Your admin panel password (Required).
+     - **VITE_GITHUB_TOKEN**: Your token (Optional).
+     - **VITE_GITHUB_REPO**: Your sync repo name (Optional).
 5. **🚀 Cloudflare Optimization (Recommended)**:
-   - **Goal**: Prevent data sync from triggering redundant build tasks.
    - **Steps**: Go to **Settings -> Build & deployment -> Build watch paths**.
-   - **Exclude**: Add `data/*` in **Excluded paths**.
+   - **Exclude**: Add `data/*` in **Excluded paths**. This prevents data sync from triggering redundant build tasks.
 
 #### 2. Manual Server Deployment (Nginx / Apache)
-Run the build command:
-```bash
-npm run build
-```
-Upload the contents of the `dist` folder to your web server's root directory.
+Run `npm run build` and upload the contents of the `dist` folder to your web server's root directory.
 
 ---
 
-## 📚 Usage Instructions
-
-1. **First Access**: Click the "Settings" icon in the top right and authenticate with your password.
-2. **Manage Bookmarks**: Add categories and links. Customize icons and dual-network addresses.
-3. **Cloud Sync**: 
-   - Enable GitHub sync in the Backup section.
-   - **Data Path**: Data is saved to `data/yunest_data.json` on the `main` branch.
-   - **Auto Pull**: When visiting from a new device for the first time, YuNest will automatically pull data if repo env vars are set.
-4. **Privacy**: 
-   - Sensitive bookmarks can be placed in "Hidden" categories.
-   - For public code repos, use a separate **Private Repo** for data storage to achieve physical isolation.
-
-## 🛡️ Security
+## 🛡️ Security & Privacy
+- **Encrypted Sync**: Data is saved to `data/yunest_data.json` on the `main` branch.
 - **Token Masking**: Sensitive tokens are removed before syncing to ensure data files are safe.
 - **Local First**: Manual refreshes won't overwrite unsynced local changes.
 
