@@ -126,8 +126,9 @@ Run `npm run build` and upload the contents of the `dist` folder to your web ser
 
 ## 📄 License
 
-This project is licensed under **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**.
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
 
-- **Non-Commercial Use Only**: You may not use this material for commercial purposes.
-- **Attribution Required**: You must give appropriate credit to the original author **YUME-0721** and provide a link to the project repository.
-- **Refer to the `LICENSE` file in the root directory for more details.**
+- **Free Software**: You are free to run, study, share, and modify the software.
+- **Copyleft**: If you distribute modified versions of the project, they must be licensed under the same GPL-3.0 license.
+- **Refer to the `LICENSE` file for the full text.**
+

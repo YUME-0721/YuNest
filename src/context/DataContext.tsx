@@ -42,6 +42,7 @@ export interface Settings {
   githubRepo?: string; // 格式: owner/repo
   language: 'zh-CN' | 'en-US';
   timezone: string; // 时区 ID (如 Asia/Shanghai)
+  authRedirect?: boolean;
 }
 
 export interface AppState {
@@ -90,6 +91,7 @@ const defaultState: AppState = {
     githubRepo: envGithubRepo,
     language: 'zh-CN',
     timezone: '', // 默认为空，跟随系统
+    authRedirect: false,
   },
   categories: [
     {

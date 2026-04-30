@@ -85,14 +85,38 @@ export default function Home() {
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(false);
 
-  // 根据设置的 searchEngine 匹配对应的预设引擎索引
+  // 根据设置的 searchEngine 获取可用引擎列表（如果有自定义，动态添加）
+  const availableEngines = useMemo(() => {
+    const hasCustom = !PRESET_SEARCH_ENGINES.some(e => e.url === settings.searchEngine);
+    if (hasCustom && settings.searchEngine) {
+      let iconUrl = '';
+      try {
+        const urlObj = new URL(settings.searchEngine);
+        iconUrl = `https://favicon.im/${urlObj.hostname}`;
+      } catch (e) {
+        // Fallback icon handled in render
+      }
+      return [
+        {
+          id: 'custom',
+          name: t.searchEngineOther || '自定义',
+          url: settings.searchEngine,
+          icon: iconUrl
+        },
+        ...PRESET_SEARCH_ENGINES
+      ];
+    }
+    return PRESET_SEARCH_ENGINES;
+  }, [settings.searchEngine, t.searchEngineOther]);
+
+  // 根据当前引擎列表匹配索引
   const [engineIndex, setEngineIndex] = useState(() => {
-    const idx = PRESET_SEARCH_ENGINES.findIndex(e => e.url === settings.searchEngine);
+    const idx = availableEngines.findIndex(e => e.url === settings.searchEngine);
     return idx === -1 ? 0 : idx;
   });
   
   const [isScrolled, setIsScrolled] = useState(false);
-  const isAdmin = useMemo(() => sessionStorage.getItem('yunest_auth') === 'true', []);
+  const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem('yunest_auth') === 'true');
   
   // 背景加载相关
   const [isBgLoaded, setIsBgLoaded] = useState(false);
@@ -134,7 +158,9 @@ export default function Home() {
   // 将 settings.timezone 传入 useClock
   const { time, date } = useClock(settings.timezone, settings.language);
 
-  const currentEngine = PRESET_SEARCH_ENGINES[engineIndex];
+  // 保证 engineIndex 不越界
+  const safeEngineIndex = engineIndex >= availableEngines.length ? 0 : engineIndex;
+  const currentEngine = availableEngines[safeEngineIndex];
 
   const bgUrl = useMemo(() => {
     if (settings.wallpaperType === 'local' && settings.localWallpaper) {
@@ -175,7 +201,7 @@ export default function Home() {
   };
 
   const toggleEngine = () => {
-    setEngineIndex((prev) => (prev + 1) % PRESET_SEARCH_ENGINES.length);
+    setEngineIndex((prev) => (prev + 1) % availableEngines.length);
   };
 
   const handleAdminAuth = (e?: React.FormEvent) => {
@@ -186,7 +212,11 @@ export default function Home() {
     if (password === adminPass) {
       sessionStorage.setItem('yunest_auth', 'true');
       setShowAuthModal(false);
-      navigate('/admin/settings');
+      setIsAdmin(true);
+      setPassword(''); // 清空密码以防下次打开还显示
+      if (settings.authRedirect) {
+        navigate('/admin/settings');
+      }
     } else {
       setAuthError(true);
       setTimeout(() => setAuthError(false), 2000);

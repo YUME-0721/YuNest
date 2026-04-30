@@ -101,14 +101,15 @@ export default function Settings() {
                 {t.searchEngineLabel}
               </label>
               
-              {/* 预设搜索引擎图标选择 */}
               <div className="flex overflow-x-auto pb-4 gap-4 px-1 -mx-1 scrollbar-hide">
                 {PRESET_SEARCH_ENGINES.map((engine) => (
                   <button
                     key={engine.id}
                     type="button"
-                    onClick={() => setLocalSettings({ ...localSettings, searchEngine: engine.url })}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all shrink-0 ${
+                    onClick={() => {
+                      setLocalSettings({ ...localSettings, searchEngine: engine.url });
+                    }}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all shrink-0 min-w-[72px] ${
                       localSettings.searchEngine === engine.url
                         ? 'bg-[#ec5b13]/10 border-[#ec5b13] ring-1 ring-[#ec5b13]'
                         : 'bg-white border-slate-200 hover:border-[#ec5b13]/50'
@@ -122,20 +123,70 @@ export default function Settings() {
                     </span>
                   </button>
                 ))}
+
+                {/* 其他搜索引擎 */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    // 如果当前选中的是预设，点击“其他”时清空输入，强制显示自定义框
+                    if (PRESET_SEARCH_ENGINES.some(e => e.url === localSettings.searchEngine)) {
+                      setLocalSettings({ ...localSettings, searchEngine: '' });
+                    }
+                  }}
+                  className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all shrink-0 min-w-[72px] ${
+                    !PRESET_SEARCH_ENGINES.some(e => e.url === localSettings.searchEngine)
+                      ? 'bg-[#ec5b13]/10 border-[#ec5b13] ring-1 ring-[#ec5b13]'
+                      : 'bg-white border-slate-200 hover:border-[#ec5b13]/50'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center bg-slate-50 border border-slate-100 ${
+                    !PRESET_SEARCH_ENGINES.some(e => e.url === localSettings.searchEngine) ? 'text-[#ec5b13]' : 'text-slate-400'
+                  }`}>
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <span className={`text-xs font-medium ${
+                    !PRESET_SEARCH_ENGINES.some(e => e.url === localSettings.searchEngine) ? 'text-[#ec5b13]' : 'text-slate-500'
+                  }`}>
+                    {t.searchEngineOther || '其他'}
+                  </span>
+                </button>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-slate-400">{t.searchEngineManual}</p>
-                <input
-                  type="text"
-                  id="setting-search-engine"
-                  className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm"
-                  placeholder="例如: https://www.google.com/search?q="
-                  value={localSettings.searchEngine}
-                  onChange={(e) => setLocalSettings({ ...localSettings, searchEngine: e.target.value })}
-                />
-                <p className="text-xs text-slate-400">{t.searchEngineDesc}</p>
+              {!PRESET_SEARCH_ENGINES.some(e => e.url === localSettings.searchEngine) && (
+                <div className="space-y-2 animate-fade-in">
+                  <p className="text-xs font-medium text-slate-400">{t.searchEngineManual}</p>
+                  <input
+                    type="text"
+                    id="setting-search-engine"
+                    className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm"
+                    placeholder="例如: https://www.google.com/search?q="
+                    value={localSettings.searchEngine}
+                    onChange={(e) => setLocalSettings({ ...localSettings, searchEngine: e.target.value })}
+                  />
+                  <p className="text-xs text-slate-400">{t.searchEngineDesc}</p>
+                </div>
+              )}
+            </div>
+
+            {/* 认证跳转开关 */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+              <div className="space-y-1">
+                <label className="text-sm font-semibold text-slate-800">{t.authRedirectLabel}</label>
+                <p className="text-xs text-slate-500">{t.authRedirectDesc}</p>
               </div>
+              <button
+                type="button"
+                onClick={() => setLocalSettings({ ...localSettings, authRedirect: !localSettings.authRedirect })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                  localSettings.authRedirect ? 'bg-[#ec5b13]' : 'bg-slate-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    localSettings.authRedirect ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
         </section>

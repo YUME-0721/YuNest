@@ -24,7 +24,7 @@ export default function Feedback() {
   const PROJECT_INFO = {
     name: 'YuNest',
     repo: 'https://github.com/YUME-0721/YuNest',
-    license: 'CC BY-NC 4.0',
+    license: 'GPL-3.0',
     description: t.siteDescription,
   };
 
@@ -57,7 +57,7 @@ export default function Feedback() {
             </div>
             <div>
               <h4 className="text-2xl font-black text-slate-800 tracking-tight">{AUTHOR_INFO.name}</h4>
-              <p className="text-slate-400 text-sm font-medium mt-1">Project Creator</p>
+
             </div>
             <div className="w-full pt-6 space-y-3">
               <button
@@ -79,20 +79,7 @@ export default function Feedback() {
                   {copied ? t.copied : AUTHOR_INFO.email}
                 </span>
               </button>
-              <a
-                href={AUTHOR_INFO.github}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-[#ec5b13]/5 transition-colors group/link"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-white shadow-sm">
-                    <Github className="w-4 h-4 text-slate-400 group-hover/link:text-[#ec5b13] transition-colors" />
-                  </div>
-                  <span className="text-sm font-bold text-slate-600">GitHub</span>
-                </div>
-                <ExternalLink className="w-4 h-4 text-slate-300 group-hover/link:text-[#ec5b13]/50 transition-colors" />
-              </a>
+
             </div>
           </div>
         </section>
@@ -122,12 +109,9 @@ export default function Feedback() {
                   {PROJECT_INFO.license}
                 </div>
               </div>
-              <div className="flex flex-col gap-2 pt-2">
-                <p className="text-[10px] sm:text-xs font-medium text-slate-400 leading-relaxed">{t.nonCommercial}</p>
-                <p className="text-[10px] sm:text-xs font-medium text-slate-400 leading-relaxed">{t.attribution}</p>
-              </div>
+
               <div className="flex flex-col gap-3 pt-2">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{t.githubRepo}</p>
+
                 <a
                   href={PROJECT_INFO.repo}
                   target="_blank"
@@ -135,7 +119,7 @@ export default function Feedback() {
                   className="flex items-center gap-3 p-4 rounded-2xl bg-slate-900 text-white hover:bg-[#ec5b13] transition-all group/repo shadow-xl shadow-slate-200 hover:shadow-[#ec5b13]/20 active:scale-95"
                 >
                   <Github className="w-5 h-5" />
-                  <span className="text-sm font-bold flex-1">{PROJECT_INFO.repo.replace('https://', '')}</span>
+                  <span className="text-sm font-bold flex-1">{PROJECT_INFO.repo.replace('https://github.com/', '')}</span>
                   <ExternalLink className="w-4 h-4 opacity-30 group-hover/repo:opacity-100 transition-opacity" />
                 </a>
               </div>
