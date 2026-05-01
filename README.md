@@ -1,6 +1,6 @@
 <div align="center">
     <p>
-        <a href="README.zh.md">简体中文</a> | English
+        <a href="README.zh.md">简体中文</a> | English | <a href="https://navdocs.072199.xyz/">Official Site</a>
     </p>
     <p align="center">
     <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
@@ -42,11 +42,11 @@ YuNest focuses on providing the most elegant "Start Page" experience. All conten
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [React 18](https://react.dev/)
+- **Framework**: [React 19](https://react.dev/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Build Tool**: [Vite 6](https://vitejs.dev/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Routing**: [React Router](https://reactrouter.com/) (HashRouter)
+- **Routing**: [React Router v7](https://reactrouter.com/) (HashRouter)
 - **Icons**: [Lucide React](https://lucide.dev/)
 
 ---
