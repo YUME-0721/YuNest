@@ -36,7 +36,9 @@ export interface Settings {
   localWallpaper: string;
   backgroundColor: string;
   glassEffect: boolean;
+  glassEffectOpacity: number; // 0-100
   darkMask: boolean;
+  darkMaskOpacity: number; // 0-100
   searchEngine: string;
   githubToken?: string;
   githubRepo?: string; // 格式: owner/repo
@@ -85,7 +87,9 @@ const defaultState: AppState = {
     localWallpaper: '',
     backgroundColor: '#000000',
     glassEffect: true,
+    glassEffectOpacity: 60,
     darkMask: true,
+    darkMaskOpacity: 50,
     searchEngine: 'https://www.google.com/search?q=',
     githubToken: envGithubToken,
     githubRepo: envGithubRepo,

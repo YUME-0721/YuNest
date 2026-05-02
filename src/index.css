@@ -5,7 +5,11 @@
   --color-accent: #ec5b13;
   --color-accent-light: #ff7a3d;
   --color-accent-dark: #c94a0e;
-  --glass-bg: rgba(0, 0, 0, 0.45);
+  
+  /* NOTE: 玻璃拟态基础变量 - 由 JS 动态控制 */
+  --glass-blur: 20px;
+  --glass-opacity: 0.45;
+  --glass-bg: rgba(0, 0, 0, var(--glass-opacity));
   --glass-border: rgba(255, 255, 255, 0.15);
 }
 
@@ -134,8 +138,8 @@ body {
 /* NOTE: 玻璃拟态效果 - 增强对比度 */
 .glass {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }

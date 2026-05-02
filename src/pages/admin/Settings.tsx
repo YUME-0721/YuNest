@@ -68,7 +68,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 sm:p-8 space-y-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-8 space-y-6 sm:space-y-8 min-w-0">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
         <div>
           <h2 className="text-3xl font-black tracking-tight text-slate-900">{t.navPersonalization}</h2>
@@ -83,7 +83,7 @@ export default function Settings() {
             <SettingsIcon className="w-5 h-5 text-[#ec5b13]" />
             <h3 className="text-xl font-bold">{t.basicSettings}</h3>
           </div>
-          <div className="grid gap-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+          <div className="grid gap-6 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm min-w-0 overflow-hidden">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-semibold">{t.siteNameLabel}</label>
               <input
@@ -197,7 +197,7 @@ export default function Settings() {
             <ImageIcon className="w-5 h-5 text-[#ec5b13]" />
             <h3 className="text-xl font-bold">{t.appearanceSettings}</h3>
           </div>
-          <div className="grid gap-8 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+          <div className="grid gap-6 bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm min-w-0 overflow-hidden">
             {/* 语言选择 */}
             <div className="flex flex-col gap-3">
               <label className="text-sm font-semibold flex items-center gap-2">
@@ -222,21 +222,17 @@ export default function Settings() {
             <Clock className="w-5 h-5 text-[#ec5b13]" />
             <h3 className="text-xl font-bold">{t.clockSettings}</h3>
           </div>
-          <div className="grid gap-8 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+          <div className="grid gap-6 bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm min-w-0 overflow-hidden">
             <div className="flex flex-col gap-3">
               <label className="text-sm font-semibold flex items-center gap-2">
                 <Globe className="w-4 h-4 text-slate-400" />
                 {t.timezoneLabel}
               </label>
-              <input
-                type="text"
-                list="timezone-list"
-                className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm"
-                placeholder={t.timezonePlaceholder}
+              <select
+                className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm font-medium cursor-pointer"
                 value={localSettings.timezone}
                 onChange={(e) => setLocalSettings({ ...localSettings, timezone: e.target.value })}
-              />
-              <datalist id="timezone-list">
+              >
                 <option value="">{t.timezoneSystem}</option>
                 <option value="Asia/Shanghai">中国/北京 (Asia/Shanghai)</option>
                 <option value="Asia/Hong_Kong">中国/香港 (Asia/Hong_Kong)</option>
@@ -249,23 +245,23 @@ export default function Settings() {
                 <option value="Europe/Paris">法国/巴黎 (Europe/Paris)</option>
                 <option value="Europe/Berlin">德国/柏林 (Europe/Berlin)</option>
                 <option value="Australia/Sydney">澳大利亚/悉尼 (Australia/Sydney)</option>
-              </datalist>
+              </select>
               <p className="text-xs text-slate-400">{t.timezoneDesc}</p>
             </div>
           </div>
         </section>
 
-        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-6 sm:-mx-8 px-6 sm:px-8 py-6 flex justify-end gap-4 mt-8 pointer-events-none">
+        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-4 sm:-mx-8 px-4 sm:px-8 py-4 sm:py-6 flex justify-end gap-3 sm:gap-4 mt-8 bg-white/80 backdrop-blur-md border-t border-slate-100 sm:bg-transparent sm:backdrop-blur-none sm:border-0 pointer-events-none">
           <button
             type="button"
             onClick={handleReset}
-            className="px-6 py-3 rounded-xl font-bold bg-white border border-slate-100 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 transition-all shadow-sm pointer-events-auto"
+            className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 transition-all shadow-sm pointer-events-auto text-sm sm:text-base"
           >
             {t.reset}
           </button>
           <button
             onClick={handleSave}
-            className={`px-8 py-3 rounded-xl font-bold shadow-2xl transition-all flex items-center gap-2 pointer-events-auto ${
+            className={`flex-[2] sm:flex-none px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold shadow-2xl transition-all flex items-center justify-center gap-2 pointer-events-auto text-sm sm:text-base ${
               saved
                 ? 'bg-green-500 text-white shadow-green-500/30'
                 : 'bg-[#ec5b13] text-white shadow-[#ec5b13]/30 hover:scale-[1.05] active:scale-[0.95]'

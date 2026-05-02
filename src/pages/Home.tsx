@@ -33,19 +33,12 @@ function useClock(timezoneID?: string, language: 'zh-CN' | 'en-US' = 'zh-CN') {
     return () => clearInterval(timer);
   }, []);
 
-  const getLocaleString = (options: Intl.DateTimeFormatOptions, isTime: boolean) => {
+  const formatWithFallback = (options: Intl.DateTimeFormatOptions) => {
     try {
-      if (isTime) {
-        return now.toLocaleTimeString(language, options);
-      }
-      return now.toLocaleDateString(language, options);
+      return new Intl.DateTimeFormat(language, options).format(now);
     } catch (e) {
       // 如果时区无效，fallback 到北京时间
-      const fallbackOptions = { ...options, timeZone: 'Asia/Shanghai' };
-      if (isTime) {
-        return now.toLocaleTimeString(language, fallbackOptions);
-      }
-      return now.toLocaleDateString(language, fallbackOptions);
+      return new Intl.DateTimeFormat(language, { ...options, timeZone: 'Asia/Shanghai' }).format(now);
     }
   };
 
@@ -66,8 +59,8 @@ function useClock(timezoneID?: string, language: 'zh-CN' | 'en-US' = 'zh-CN') {
   };
 
   return { 
-    time: getLocaleString(timeOptions, true), 
-    date: getLocaleString(dateOptions, false) 
+    time: formatWithFallback(timeOptions), 
+    date: formatWithFallback(dateOptions) 
   };
 }
 
@@ -154,6 +147,18 @@ export default function Home() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // 监听设置变化，动态更新全局 CSS 变量（玻璃拟态强度）
+  useEffect(() => {
+    const root = document.documentElement;
+    // 基础模糊值从 0 到 40px
+    const blurValue = (settings.glassEffectOpacity / 100) * 40;
+    // 背景透明度从 0.1 到 0.8
+    const opacityValue = 0.1 + (settings.glassEffectOpacity / 100) * 0.7;
+    
+    root.style.setProperty('--glass-blur', `${blurValue}px`);
+    root.style.setProperty('--glass-opacity', `${opacityValue}`);
+  }, [settings.glassEffectOpacity]);
 
   // 将 settings.timezone 传入 useClock
   const { time, date } = useClock(settings.timezone, settings.language);
@@ -318,16 +323,26 @@ export default function Home() {
           />
         )}
         {settings.darkMask && (
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80 pointer-events-none" />
+          <div 
+            className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/90 pointer-events-none transition-opacity duration-500" 
+            style={{ opacity: settings.darkMaskOpacity / 100 }}
+          />
         )}
         {settings.glassEffect && (
-          <div className="absolute inset-0 backdrop-blur-[6px] bg-black/2 pointer-events-none" />
+          <div 
+            className="absolute inset-0 pointer-events-none transition-all duration-500" 
+            style={{ 
+              backdropFilter: `blur(${(settings.glassEffectOpacity / 100) * 12}px)`,
+              WebkitBackdropFilter: `blur(${(settings.glassEffectOpacity / 100) * 12}px)`,
+              backgroundColor: `rgba(0, 0, 0, ${ (settings.glassEffectOpacity / 100) * 0.08 })`
+            }}
+          />
         )}
       </div>
 
-      {/* 左上角网站标题 */}
+      {/* 左上角网站标题 - 仅在桌面端显示 */}
       <div 
-        className={`fixed top-6 left-8 z-50 transition-all duration-500 ease-in-out ${
+        className={`fixed top-6 left-8 z-50 transition-all duration-500 ease-in-out hidden sm:block ${
           isScrolled ? 'opacity-0 -translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
         }`}
       >
@@ -337,7 +352,11 @@ export default function Home() {
       </div>
 
       {/* 右上角设置按钮 */}
-      <div className="fixed top-6 right-6 z-50 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+      <div 
+        className={`fixed top-6 right-6 z-50 transition-all duration-500 ease-in-out ${
+          isScrolled ? 'opacity-0 -translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
+        }`}
+      >
         <button
           onClick={openAuth}
           className="p-3 rounded-2xl glass text-white/40 hover:text-white/90 transition-all duration-300 hover:bg-white/10 group flex items-center justify-center border-0 cursor-pointer"
@@ -352,15 +371,29 @@ export default function Home() {
 
         {/* 时钟和日期 */}
         <header className="text-center pt-12 sm:pt-16 mb-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          {/* 移动端显示的标题 */}
+          <h1 className="sm:hidden text-xs font-bold tracking-[0.4em] text-white/40 uppercase mb-4">
+            {settings.siteName}
+          </h1>
           <div className="text-5xl sm:text-6xl font-extralight tracking-tight text-white/90 mb-2 tabular-nums">
             {time}
           </div>
           <div className="flex items-center justify-center gap-2">
             <p className="text-white/40 text-sm tracking-widest">{date}</p>
             {settings.timezone && (
-              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-[10px] text-white/20 font-medium uppercase tracking-tighter">
-                <Globe className="w-2.5 h-2.5" />
-                {settings.timezone.split('/').pop()?.replace('_', ' ')}
+              <span className="flex items-center gap-1.5 ml-1 text-white/40 text-sm tracking-widest uppercase">
+                <span className="opacity-50">/</span>
+                {(() => {
+                  if (settings.timezone.includes('Asia')) return <Icons.Compass className="w-3.5 h-3.5" />;
+                  if (settings.timezone.includes('Europe')) return <Icons.Map className="w-3.5 h-3.5" />;
+                  if (settings.timezone.includes('America')) return <Icons.MapPin className="w-3.5 h-3.5" />;
+                  if (settings.timezone.includes('Australia')) return <Icons.Navigation className="w-3.5 h-3.5" />;
+                  if (settings.timezone.includes('Africa')) return <Icons.Sun className="w-3.5 h-3.5" />;
+                  return <Icons.Globe className="w-3.5 h-3.5" />;
+                })()}
+                <span className="text-[11px] font-medium tracking-[0.2em]">
+                  {settings.timezone.split('/').pop()?.replace('_', ' ')}
+                </span>
               </span>
             )}
           </div>

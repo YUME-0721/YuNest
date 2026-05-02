@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Github, Mail, User, ExternalLink, Shield, Info, Heart, Copy, Check } from 'lucide-react';
+import { Github, Mail, User, ExternalLink, Shield, Info, Heart, Copy, Check, FileText } from 'lucide-react';
 import { useData } from '../../context/DataContext.tsx';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 
@@ -85,7 +85,16 @@ export default function Feedback() {
         </section>
 
         {/* 项目信息卡片 */}
-        <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+        <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+          <a 
+            href="http://navdocs.072199.xyz" 
+            target="_blank" 
+            rel="noreferrer"
+            className="absolute top-6 right-6 p-2.5 rounded-xl bg-slate-50 hover:bg-[#ec5b13]/10 text-slate-400 hover:text-[#ec5b13] transition-all group/docs border-none cursor-pointer"
+            title="查看文档"
+          >
+            <FileText className="w-5 h-5 transition-transform group-hover/docs:scale-110" />
+          </a>
           <div className="flex items-center gap-3 mb-6">
             <Heart className="w-5 h-5 text-[#ec5b13]" />
             <h3 className="text-xl font-bold">{t.aboutProject}</h3>

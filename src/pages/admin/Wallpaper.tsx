@@ -209,35 +209,74 @@ export default function Wallpaper() {
 
           {/* 视觉效果开关 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
-            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50">
-              <div>
-                <p className="text-[13px] font-bold">{t.glassEffectLabel}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{t.glassEffectDesc}</p>
+            <div className="flex flex-col gap-4 p-4 rounded-xl border border-slate-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[13px] font-bold">{t.glassEffectLabel}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{t.glassEffectDesc}</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={localSettings.glassEffect}
+                    onChange={(e) => setLocalSettings({ ...localSettings, glassEffect: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ec5b13]" />
+                </label>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={localSettings.glassEffect}
-                  onChange={(e) => setLocalSettings({ ...localSettings, glassEffect: e.target.checked })}
-                />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ec5b13]" />
-              </label>
+              {localSettings.glassEffect && (
+                <div className="space-y-2 animate-fade-in">
+                  <div className="flex justify-between items-center text-[11px] font-medium text-slate-500">
+                    <span>{t.glassOpacityLabel}</span>
+                    <span className="font-mono">{localSettings.glassEffectOpacity}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#ec5b13]"
+                    value={localSettings.glassEffectOpacity}
+                    onChange={(e) => setLocalSettings({ ...localSettings, glassEffectOpacity: parseInt(e.target.value) })}
+                  />
+                </div>
+              )}
             </div>
-            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-50">
-              <div>
-                <p className="text-[13px] font-bold">{t.darkMaskLabel}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{t.darkMaskDesc}</p>
+
+            <div className="flex flex-col gap-4 p-4 rounded-xl border border-slate-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[13px] font-bold">{t.darkMaskLabel}</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{t.darkMaskDesc}</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={localSettings.darkMask}
+                    onChange={(e) => setLocalSettings({ ...localSettings, darkMask: e.target.checked })}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ec5b13]" />
+                </label>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={localSettings.darkMask}
-                  onChange={(e) => setLocalSettings({ ...localSettings, darkMask: e.target.checked })}
-                />
-                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#ec5b13]" />
-              </label>
+              {localSettings.darkMask && (
+                <div className="space-y-2 animate-fade-in">
+                  <div className="flex justify-between items-center text-[11px] font-medium text-slate-500">
+                    <span>{t.maskOpacityLabel}</span>
+                    <span className="font-mono">{localSettings.darkMaskOpacity}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#ec5b13]"
+                    value={localSettings.darkMaskOpacity}
+                    onChange={(e) => setLocalSettings({ ...localSettings, darkMaskOpacity: parseInt(e.target.value) })}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
