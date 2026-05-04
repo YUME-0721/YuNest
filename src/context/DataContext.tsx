@@ -45,11 +45,14 @@ export interface Settings {
   language: 'zh-CN' | 'en-US';
   timezone: string; // 时区 ID (如 Asia/Shanghai)
   authRedirect?: boolean;
+  autoSync?: boolean;
+  githubSync?: boolean;
 }
 
 export interface AppState {
   settings: Settings;
   categories: Category[];
+  updatedAt: number;
 }
 
 
@@ -79,24 +82,29 @@ export const PRESET_SEARCH_ENGINES = [
 const envGithubToken = (import.meta as any).env.VITE_GITHUB_TOKEN || '';
 const envGithubRepo = (import.meta as any).env.VITE_GITHUB_REPO || '';
 
+/** 默认个性化设置 */
+export const DEFAULT_SETTINGS: Settings = {
+  siteName: 'YuNest',
+  wallpaperType: 'fixed',
+  wallpaperUrl: 'https://img.072199.xyz/file/wallpaper/1773289345749.webp',
+  localWallpaper: '',
+  backgroundColor: '#000000',
+  glassEffect: true,
+  glassEffectOpacity: 60,
+  darkMask: true,
+  darkMaskOpacity: 50,
+  searchEngine: 'https://www.google.com/search?q=',
+  githubToken: envGithubToken,
+  githubRepo: envGithubRepo,
+  language: 'zh-CN',
+  timezone: '', // 默认为空，跟随系统
+  authRedirect: true,
+  autoSync: false,
+  githubSync: false,
+};
+
 const defaultState: AppState = {
-  settings: {
-    siteName: 'YuNest',
-    wallpaperType: 'fixed',
-    wallpaperUrl: 'https://img.072199.xyz/file/wallpaper/1773289345749.webp',
-    localWallpaper: '',
-    backgroundColor: '#000000',
-    glassEffect: true,
-    glassEffectOpacity: 60,
-    darkMask: true,
-    darkMaskOpacity: 50,
-    searchEngine: 'https://www.google.com/search?q=',
-    githubToken: envGithubToken,
-    githubRepo: envGithubRepo,
-    language: 'zh-CN',
-    timezone: '', // 默认为空，跟随系统
-    authRedirect: false,
-  },
+  settings: DEFAULT_SETTINGS,
   categories: [
     {
       id: 'c1',
@@ -139,6 +147,7 @@ const defaultState: AppState = {
       ],
     },
   ],
+  updatedAt: 0,
 };
 
 interface DataContextType {
@@ -190,23 +199,42 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return defaultState;
   });
 
-  // 检查是否是初次进入（本地尚未存储任何数据）
-  const [isInitialLoad] = useState(() => !localStorage.getItem('yunest_data'));
-
-  // 1. 仅在初次进入且配置了环境变量时，自动从云端同步数据
+  // 1. 自动同步逻辑：页面加载或开关开启时检查云端更新
   useEffect(() => {
-    if (isInitialLoad) {
-      const token = envGithubToken;
-      const repo = envGithubRepo;
-      if (token && repo) {
-        console.log('YuNest: 首次运行，正在自动从云端拉取数据...');
-        fetchFromRepo(token, repo).catch((err) => {
-          console.warn('Initial data sync ignored:', err.message);
-        });
-      }
+    if (state.settings.githubSync && state.settings.autoSync && state.settings.githubToken && state.settings.githubRepo) {
+      const checkAndPull = async () => {
+        try {
+          const token = state.settings.githubToken;
+          const repo = state.settings.githubRepo;
+          const path = 'data/yunest_data.json';
+          
+          const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github+json',
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const content = decodeURIComponent(escape(atob(data.content)));
+            const remoteData = JSON.parse(content) as AppState;
+            
+            if (remoteData.updatedAt && remoteData.updatedAt > state.updatedAt) {
+              console.log('YuNest: 发现云端有更新，正在自动同步...');
+              remoteData.settings.githubToken = token;
+              remoteData.settings.githubRepo = repo;
+              importData(remoteData);
+            }
+          }
+        } catch (err) {
+          console.warn('Auto sync check failed:', err);
+        }
+      };
+      checkAndPull();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialLoad]);
+  }, [state.settings.githubSync, state.settings.autoSync]);
 
   // 2. 状态持久化到本地（放在同步逻辑后，避免初次加载时过早写入空数据）
   useEffect(() => {
@@ -214,13 +242,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [state]);
 
   const updateSettings = useCallback((newSettings: Partial<Settings>) => {
-    setState((prev) => ({ ...prev, settings: { ...prev.settings, ...newSettings } }));
+    setState((prev) => ({ 
+      ...prev, 
+      settings: { ...prev.settings, ...newSettings },
+      updatedAt: Date.now() 
+    }));
   }, []);
 
   const addCategory = useCallback((category: Omit<Category, 'id' | 'bookmarks'>) => {
     setState((prev) => ({
       ...prev,
       categories: [...prev.categories, { ...category, id: `c_${Date.now()}`, bookmarks: [] }],
+      updatedAt: Date.now()
     }));
   }, []);
 
@@ -228,6 +261,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({
       ...prev,
       categories: prev.categories.map((c) => (c.id === id ? { ...c, ...category } : c)),
+      updatedAt: Date.now()
     }));
   }, []);
 
@@ -235,6 +269,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => ({
       ...prev,
       categories: prev.categories.filter((c) => c.id !== id),
+      updatedAt: Date.now()
     }));
   }, []);
 
@@ -244,7 +279,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       const newCategories = [...prev.categories];
       const [moved] = newCategories.splice(fromIndex, 1);
       newCategories.splice(toIndex, 0, moved);
-      return { ...prev, categories: newCategories };
+      return { ...prev, categories: newCategories, updatedAt: Date.now() };
     });
   }, []);
 
@@ -257,6 +292,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
         return c;
       }),
+      updatedAt: Date.now()
     }));
   }, []);
 
@@ -272,6 +308,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
         return c;
       }),
+      updatedAt: Date.now()
     }));
   }, []);
 
@@ -284,6 +321,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
         return c;
       }),
+      updatedAt: Date.now()
     }));
   }, []);
 
@@ -300,16 +338,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
         return c;
       }),
+      updatedAt: Date.now()
     }));
   }, []);
 
   const importData = useCallback((data: AppState) => {
-    // NOTE: 导入时也兼容旧数据结构
-    setState({
+    setState((prev) => ({
       ...defaultState,
       ...data,
       settings: { ...defaultState.settings, ...data.settings },
-    });
+      // 如果导入的数据没有 updatedAt，则设为当前时间
+      updatedAt: data.updatedAt || Date.now()
+    }));
   }, []);
 
   const exportData = useCallback(() => {

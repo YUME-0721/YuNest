@@ -18,7 +18,7 @@ function getFaviconUrl(siteUrl: string): string {
   try {
     const url = new URL(siteUrl);
     // 切换至境内外访问更稳定的图标抓取服务，解决 Google S2 壁垒问题
-    return `https://favicon.im/${url.hostname}`;
+    return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
   } catch {
     return '';
   }
@@ -85,7 +85,7 @@ export default function Home() {
       let iconUrl = '';
       try {
         const urlObj = new URL(settings.searchEngine);
-        iconUrl = `https://favicon.im/${urlObj.hostname}`;
+        iconUrl = `https://www.google.com/s2/favicons?domain=${urlObj.hostname}&sz=64`;
       } catch (e) {
         // Fallback icon handled in render
       }

@@ -100,6 +100,11 @@ body {
   to { opacity: 0.8; }
 }
 
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
@@ -133,6 +138,14 @@ body {
 
 .animate-shake {
   animation: shake 0.4s ease-in-out;
+}
+
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+.animate-fade {
+  animation: fade 0.3s ease-out both;
 }
 
 /* NOTE: 玻璃拟态效果 - 增强对比度 */

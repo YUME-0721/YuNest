@@ -8,6 +8,7 @@ import { useData, type Category, type Bookmark } from '../../context/DataContext
 import * as Icons from 'lucide-react';
 import { Plus, Edit2, Trash2, FolderOpen, ChevronUp, ChevronDown, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
+import ConfirmModal from '../../components/ConfirmModal.tsx';
 
 export default function Bookmarks() {
   const {
@@ -39,6 +40,21 @@ export default function Bookmarks() {
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [bookmarkForm, setBookmarkForm] = useState({ title: '', url: '', lanUrl: '', icon: '', description: '' });
 
+  // 确认弹窗状态
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type: 'danger' | 'warning';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => { },
+    type: 'warning'
+  });
+
   const currentCategory = state.categories.find((c) => c.id === activeCategory);
   const currentCategoryIndex = state.categories.findIndex((c) => c.id === activeCategory);
 
@@ -67,11 +83,17 @@ export default function Bookmarks() {
   };
 
   const handleDeleteCategory = (id: string) => {
-    if (!window.confirm(t.confirmDeleteCategory)) return;
-    deleteCategory(id);
-    // NOTE: 删除后自动切换到第一个分类
-    const remaining = state.categories.filter((c) => c.id !== id);
-    setActiveCategory(remaining[0]?.id || '');
+    setConfirmModal({
+      isOpen: true,
+      title: t.deleteCategory,
+      message: t.confirmDeleteCategory,
+      type: 'danger',
+      onConfirm: () => {
+        deleteCategory(id);
+        const remaining = state.categories.filter((c) => c.id !== id);
+        setActiveCategory(remaining[0]?.id || '');
+      }
+    });
   };
 
   // 书签处理器
@@ -117,7 +139,7 @@ export default function Bookmarks() {
   const getFaviconUrl = (url: string) => {
     try {
       const domain = new URL(url).hostname;
-      return `https://favicon.im/${domain}`;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
     } catch {
       return '';
     }
@@ -317,9 +339,13 @@ export default function Bookmarks() {
                         </button>
                         <button
                           onClick={() => {
-                            if (window.confirm(t.deleteConfirmBookmark)) {
-                              deleteBookmark(currentCategory.id, bookmark.id);
-                            }
+                            setConfirmModal({
+                              isOpen: true,
+                              title: t.deleteConfirmBookmark.split('?')[0],
+                              message: t.deleteConfirmBookmark,
+                              type: 'danger',
+                              onConfirm: () => deleteBookmark(currentCategory.id, bookmark.id)
+                            });
                           }}
                           className="p-2 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
                         >
@@ -542,6 +568,16 @@ export default function Bookmarks() {
           </div>
         </div>
       )}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={t.confirm}
+        cancelText={t.cancel}
+        type={confirmModal.type}
+      />
     </div>
   );
 }

@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { useData, PRESET_SEARCH_ENGINES } from '../../context/DataContext.tsx';
+import { useData, PRESET_SEARCH_ENGINES, DEFAULT_SETTINGS } from '../../context/DataContext.tsx';
 import { Settings as SettingsIcon, Image as ImageIcon, Search, CheckCircle, Upload, RefreshCw, Clock, Globe } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
+import ConfirmModal from '../../components/ConfirmModal.tsx';
 
 export default function Settings() {
   const { state, updateSettings } = useData();
@@ -15,6 +16,7 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(state.settings.wallpaperUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   const handleSave = () => {
     updateSettings(localSettings);
@@ -23,8 +25,12 @@ export default function Settings() {
   };
 
   const handleReset = () => {
-    setLocalSettings(state.settings);
-    setPreviewUrl(state.settings.wallpaperUrl);
+    setIsResetModalOpen(true);
+  };
+
+  const confirmReset = () => {
+    setLocalSettings(DEFAULT_SETTINGS);
+    setPreviewUrl(DEFAULT_SETTINGS.wallpaperUrl);
   };
 
   /** 处理本地壁纸上传——转为 base64 存入 localStorage */
@@ -278,6 +284,17 @@ export default function Settings() {
           </button>
         </footer>
       </div>
+
+      <ConfirmModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={confirmReset}
+        title={t.reset}
+        message={t.resetSettingsConfirm}
+        confirmText={t.reset}
+        cancelText={t.cancel || '取消'}
+        type="warning"
+      />
     </div>
   );
 }

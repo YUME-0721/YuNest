@@ -103,7 +103,7 @@ export default function Feedback() {
             <div>
               <div className="flex items-baseline gap-2 mb-2">
                 <span className="text-3xl font-black text-[#ec5b13] italic">{PROJECT_INFO.name}</span>
-                <span className="text-xs font-bold text-slate-300 tracking-widest uppercase">Version 1.2.0</span>
+                <span className="text-xs font-bold text-slate-300 tracking-widest uppercase">Version 1.3.0</span>
               </div>
               <p className="text-sm text-slate-500 leading-relaxed font-medium">
                 {PROJECT_INFO.description}

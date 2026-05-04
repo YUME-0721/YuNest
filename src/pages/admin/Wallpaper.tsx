@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { useData } from '../../context/DataContext.tsx';
+import { useData, DEFAULT_SETTINGS } from '../../context/DataContext.tsx';
 import { Image as ImageIcon, CheckCircle, Upload, RefreshCw } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
+import ConfirmModal from '../../components/ConfirmModal.tsx';
 
 export default function Wallpaper() {
   const { state, updateSettings } = useData();
@@ -15,6 +16,7 @@ export default function Wallpaper() {
   const [saved, setSaved] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(state.settings.wallpaperUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   const handleSave = () => {
     updateSettings(localSettings);
@@ -23,8 +25,12 @@ export default function Wallpaper() {
   };
 
   const handleReset = () => {
-    setLocalSettings(state.settings);
-    setPreviewUrl(state.settings.wallpaperUrl);
+    setIsResetModalOpen(true);
+  };
+
+  const confirmReset = () => {
+    setLocalSettings(DEFAULT_SETTINGS);
+    setPreviewUrl(DEFAULT_SETTINGS.wallpaperUrl);
   };
 
   /** 处理本地壁纸上传——转为 base64 存入 localStorage */
@@ -282,10 +288,17 @@ export default function Wallpaper() {
         </div>
 
         {/* 保存栏 */}
-        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-6 sm:-mx-8 px-6 sm:px-8 py-6 flex flex-col items-end gap-3 mt-8 pointer-events-none">
+        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 sm:py-6 flex justify-end gap-3 sm:gap-4 mt-8 bg-white/80 backdrop-blur-md border-t border-slate-100 sm:bg-transparent sm:backdrop-blur-none sm:border-0 pointer-events-none">
+          <button
+            type="button"
+            onClick={handleReset}
+            className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 transition-all shadow-sm pointer-events-auto text-sm sm:text-base"
+          >
+            {t.reset}
+          </button>
           <button
             onClick={handleSave}
-            className={`px-8 py-3 rounded-xl font-bold shadow-2xl transition-all flex items-center gap-2 pointer-events-auto ${
+            className={`flex-[2] sm:flex-none px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold shadow-2xl transition-all flex items-center justify-center gap-2 pointer-events-auto text-sm sm:text-base ${
               saved
                 ? 'bg-green-500 text-white shadow-green-500/30'
                 : 'bg-[#ec5b13] text-white shadow-[#ec5b13]/30 hover:scale-[1.05] active:scale-[0.95]'
@@ -302,6 +315,17 @@ export default function Wallpaper() {
           </button>
         </footer>
       </div>
+
+      <ConfirmModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={confirmReset}
+        title={t.reset}
+        message={t.resetSettingsConfirm}
+        confirmText={t.reset}
+        cancelText={t.cancel || '取消'}
+        type="warning"
+      />
     </div>
   );
 }

@@ -5,8 +5,9 @@
 
 import React, { useRef, useState } from 'react';
 import { useData } from '../../context/DataContext.tsx';
-import { UploadCloud, Download, AlertTriangle, CheckCircle, FileJson, Database, Cloud } from 'lucide-react';
+import { UploadCloud, Download, AlertTriangle, CheckCircle, FileJson, Database, Cloud, RefreshCw } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
+import ConfirmModal from '../../components/ConfirmModal.tsx';
 
 export default function Backup() {
   const { state, importData, exportData, syncToRepo, fetchFromRepo, updateSettings } = useData();
@@ -19,6 +20,7 @@ export default function Backup() {
   const [syncStatus, setSyncStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [syncMessage, setSyncMessage] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   // 数据统计
   const totalBookmarks = state.categories.reduce((acc, cat) => acc + cat.bookmarks.length, 0);
@@ -156,10 +158,26 @@ export default function Backup() {
       <div className="grid grid-cols-1 gap-8">
         {/* 云端同步 (GitHub 仓库) */}
         <section className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 mb-6">
-            <Cloud className="w-6 h-6 text-[#ec5b13]" />
-            <h3 className="text-xl font-bold">{t.cloudSync}</h3>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Cloud className={`w-6 h-6 ${state.settings.githubSync ? 'text-[#ec5b13]' : 'text-slate-300'}`} />
+              <h3 className="text-xl font-bold">{t.cloudSync}</h3>
+            </div>
+            <button
+              onClick={() => updateSettings({ githubSync: !state.settings.githubSync })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                state.settings.githubSync ? 'bg-[#ec5b13]' : 'bg-slate-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  state.settings.githubSync ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
+
+          <div className={`transition-all duration-300 ${state.settings.githubSync ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale-[0.5]'}`}>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
@@ -182,6 +200,29 @@ export default function Backup() {
                 onChange={(e) => updateSettings({ githubRepo: e.target.value })}
               />
             </div>
+          </div>
+
+          {/* 自动同步开关 */}
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl mb-6">
+            <div className="space-y-0.5">
+              <div className="text-sm font-bold flex items-center gap-2">
+                <RefreshCw className={`w-4 h-4 ${state.settings.autoSync ? 'animate-spin-slow text-[#ec5b13]' : 'text-slate-400'}`} />
+                {t.autoSyncLabel}
+              </div>
+              <p className="text-[11px] text-slate-400">{t.autoSyncDesc}</p>
+            </div>
+            <button
+              onClick={() => updateSettings({ autoSync: !state.settings.autoSync })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                state.settings.autoSync ? 'bg-[#ec5b13]' : 'bg-slate-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  state.settings.autoSync ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
 
           {syncStatus !== 'idle' && (
@@ -218,6 +259,7 @@ export default function Backup() {
               <Download className="w-4 h-4" />
               {t.pullData}
             </button>
+          </div>
           </div>
         </section>
 
@@ -287,12 +329,7 @@ export default function Backup() {
               </p>
             </div>
             <button
-              onClick={() => {
-                if (window.confirm(t.resetConfirm)) {
-                  localStorage.removeItem('yunest_data');
-                  window.location.reload();
-                }
-              }}
+              onClick={() => setIsResetModalOpen(true)}
               className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors whitespace-nowrap shadow-lg shadow-red-600/10"
             >
               {t.resetSiteLabel}
@@ -300,6 +337,20 @@ export default function Backup() {
           </div>
         </section>
       </div>
+
+      <ConfirmModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={() => {
+          localStorage.removeItem('yunest_data');
+          window.location.reload();
+        }}
+        title={t.dangerZone}
+        message={t.resetConfirm}
+        confirmText={t.reset}
+        cancelText={t.cancel}
+        type="danger"
+      />
     </div>
   );
 }
