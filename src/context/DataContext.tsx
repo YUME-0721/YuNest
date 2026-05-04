@@ -99,54 +99,14 @@ export const DEFAULT_SETTINGS: Settings = {
   language: 'zh-CN',
   timezone: '', // 默认为空，跟随系统
   authRedirect: true,
-  autoSync: false,
-  githubSync: false,
+  // NOTE: 如果环境变量中配置了 Token，则默认开启自动同步，实现“一次部署，全站统一”
+  autoSync: !!envGithubToken,
+  githubSync: !!envGithubToken,
 };
 
 const defaultState: AppState = {
   settings: DEFAULT_SETTINGS,
-  categories: [
-    {
-      id: 'c1',
-      title: '工具',
-      icon: 'Wrench',
-      layout: 'grid',
-      isHidden: false,
-      bookmarks: [
-        { id: 'b1', title: 'GitHub', url: 'https://github.com', description: '代码托管与协作', icon: '' },
-        { id: 'b2', title: 'Cloudflare', url: 'https://www.cloudflare.com', description: '静态托管与 CDN', icon: '' },
-        { id: 'b3', title: 'Google', url: 'https://www.google.com', description: '谷歌搜索', icon: '' },
-        { id: 'b4', title: 'Microsoft', url: 'https://www.microsoft.com', description: '微软官网', icon: '' },
-        { id: 'b5', title: 'Apple', url: 'https://www.apple.com', description: '苹果官网', icon: '' },
-        { id: 'b6', title: 'Vercel', url: 'https://vercel.com', description: '前端部署平台', icon: '' },
-        { id: 'b7', title: 'Railway', url: 'https://railway.app', description: '后端托管服务', icon: '' },
-        { id: 'b8', title: 'Supabase', url: 'https://supabase.com', description: '开源 Firebase 替代品', icon: '' },
-        { id: 'b9', title: 'ChatGPT', url: 'https://chat.openai.com', description: 'OpenAI 智能会话', icon: '' },
-        { id: 'b10', title: 'Claude', url: 'https://claude.ai', description: 'Anthropic 智能助手', icon: '' },
-        { id: 'b11', title: 'Hugging Face', url: 'https://huggingface.co', description: 'AI 开源模型协作平台', icon: '' },
-        { id: 'b12', title: 'Tailwind CSS', url: 'https://tailwindcss.com', description: '现代 CSS 样式框架', icon: '' },
-      ],
-    },
-    {
-      id: 'c2',
-      title: '休闲娱乐',
-      icon: 'Gamepad2',
-      layout: 'card',
-      isHidden: false,
-      bookmarks: [
-        { id: 'b13', title: 'YouTube', url: 'https://www.youtube.com', description: '全球视频分享平台', icon: '' },
-        { id: 'b14', title: 'Facebook', url: 'https://www.facebook.com', description: '社交网络', icon: '' },
-        { id: 'b15', title: 'Twitter', url: 'https://twitter.com', description: '社交媒体 X', icon: '' },
-        { id: 'b16', title: 'Bilibili', url: 'https://www.bilibili.com', description: '中国最大的弹幕视频平台', icon: '' },
-        { id: 'b17', title: 'Pixiv', url: 'https://www.pixiv.net', description: '插画艺术交流网站', icon: '' },
-        { id: 'b18', title: 'TMDB', url: 'https://www.themoviedb.org', description: '电影与电视数据库', icon: '' },
-        { id: 'b19', title: 'TVDB', url: 'https://thetvdb.com', description: '电视节目数据库', icon: '' },
-        { id: 'b20', title: 'IMDb', url: 'https://www.imdb.com', description: '互联网电影资料库', icon: '' },
-        { id: 'b21', title: 'Bangumi', url: 'https://bgm.tv', description: '动漫番剧索引与记录', icon: '' },
-        { id: 'b22', title: 'Douban', url: 'https://www.douban.com', description: '书影音评分与记录', icon: '' },
-      ],
-    },
-  ],
+  categories: [],
   updatedAt: 0,
 };
 
@@ -199,10 +159,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return defaultState;
   });
 
-  // 1. 自动同步逻辑：页面加载或开关开启时检查云端更新
+  // 1. 自动同步逻辑：初始化与增量更新
   useEffect(() => {
-    if (state.settings.githubSync && state.settings.autoSync && state.settings.githubToken && state.settings.githubRepo) {
-      const checkAndPull = async () => {
+    const initializeData = async () => {
+      // 如果没有本地数据，先尝试加载内置默认数据
+      const hasLocalData = localStorage.getItem('yunest_data');
+      if (!hasLocalData) {
+        try {
+          const res = await fetch('/data/default_data.json');
+          if (res.ok) {
+            const data = await res.json();
+            console.log('YuNest: 加载项目内置默认数据');
+            importData(data);
+          }
+        } catch (e) {
+          console.warn('Failed to load default_data.json', e);
+        }
+      }
+
+      // 如果开启了同步，尝试从云端拉取更新
+      if (state.settings.githubSync && state.settings.autoSync && state.settings.githubToken && state.settings.githubRepo) {
         try {
           const token = state.settings.githubToken;
           const repo = state.settings.githubRepo;
@@ -220,8 +196,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             const content = decodeURIComponent(escape(atob(data.content)));
             const remoteData = JSON.parse(content) as AppState;
             
+            // 只有当云端更新时间晚于当前时间才同步（包括从 default_data.json 加载后的时间）
             if (remoteData.updatedAt && remoteData.updatedAt > state.updatedAt) {
-              console.log('YuNest: 发现云端有更新，正在自动同步...');
+              console.log('YuNest: 发现云端有更新，正在同步...');
               remoteData.settings.githubToken = token;
               remoteData.settings.githubRepo = repo;
               importData(remoteData);
@@ -230,9 +207,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         } catch (err) {
           console.warn('Auto sync check failed:', err);
         }
-      };
-      checkAndPull();
-    }
+      }
+    };
+
+    initializeData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.settings.githubSync, state.settings.autoSync]);
 

@@ -1,0 +1,62 @@
+{
+  "settings": {
+    "siteName": "YuNest",
+    "wallpaperType": "fixed",
+    "wallpaperUrl": "https://img.072199.xyz/file/wallpaper/1773289345749.webp",
+    "localWallpaper": "",
+    "backgroundColor": "#000000",
+    "glassEffect": true,
+    "glassEffectOpacity": 60,
+    "darkMask": true,
+    "darkMaskOpacity": 50,
+    "searchEngine": "https://www.google.com/search?q=",
+    "language": "zh-CN",
+    "timezone": "",
+    "authRedirect": true,
+    "autoSync": true,
+    "githubSync": true
+  },
+  "categories": [
+    {
+      "id": "c1",
+      "title": "工具",
+      "icon": "Wrench",
+      "layout": "grid",
+      "isHidden": false,
+      "bookmarks": [
+        { "id": "b1", "title": "GitHub", "url": "https://github.com", "description": "代码托管与协作", "icon": "" },
+        { "id": "b2", "title": "Cloudflare", "url": "https://www.cloudflare.com", "description": "静态托管与 CDN", "icon": "" },
+        { "id": "b3", "title": "Google", "url": "https://www.google.com", "description": "谷歌搜索", "icon": "" },
+        { "id": "b4", "title": "Microsoft", "url": "https://www.microsoft.com", "description": "微软官网", "icon": "" },
+        { "id": "b5", "title": "Apple", "url": "https://www.apple.com", "description": "苹果官网", "icon": "" },
+        { "id": "b6", "title": "Vercel", "url": "https://vercel.com", "description": "前端部署平台", "icon": "" },
+        { "id": "b7", "title": "Railway", "url": "https://railway.app", "description": "后端托管服务", "icon": "" },
+        { "id": "b8", "title": "Supabase", "url": "https://supabase.com", "description": "开源 Firebase 替代品", "icon": "" },
+        { "id": "b9", "title": "ChatGPT", "url": "https://chat.openai.com", "description": "OpenAI 智能会话", "icon": "" },
+        { "id": "b10", "title": "Claude", "url": "https://claude.ai", "description": "Anthropic 智能助手", "icon": "" },
+        { "id": "b11", "title": "Hugging Face", "url": "https://huggingface.co", "description": "AI 开源模型协作平台", "icon": "" },
+        { "id": "b12", "title": "Tailwind CSS", "url": "https://tailwindcss.com", "description": "现代 CSS 样式框架", "icon": "" }
+      ]
+    },
+    {
+      "id": "c2",
+      "title": "休闲娱乐",
+      "icon": "Gamepad2",
+      "layout": "card",
+      "isHidden": false,
+      "bookmarks": [
+        { "id": "b13", "title": "YouTube", "url": "https://www.youtube.com", "description": "全球视频分享平台", "icon": "" },
+        { "id": "b14", "title": "Facebook", "url": "https://www.facebook.com", "description": "社交网络", "icon": "" },
+        { "id": "b15", "title": "Twitter", "url": "https://twitter.com", "description": "社交媒体 X", "icon": "" },
+        { "id": "b16", "title": "Bilibili", "url": "https://www.bilibili.com", "description": "中国最大的弹幕视频平台", "icon": "" },
+        { "id": "b17", "title": "Pixiv", "url": "https://www.pixiv.net", "description": "插画艺术交流网站", "icon": "" },
+        { "id": "b18", "title": "TMDB", "url": "https://www.themoviedb.org", "description": "电影与电视数据库", "icon": "" },
+        { "id": "b19", "title": "TVDB", "url": "https://thetvdb.com", "description": "电视节目数据库", "icon": "" },
+        { "id": "b20", "title": "IMDb", "url": "https://www.imdb.com", "description": "互联网电影资料库", "icon": "" },
+        { "id": "b21", "title": "Bangumi", "url": "https://bgm.tv", "description": "动漫番剧索引与记录", "icon": "" },
+        { "id": "b22", "title": "Douban", "url": "https://www.douban.com", "description": "书影音评分与记录", "icon": "" }
+      ]
+    }
+  ],
+  "updatedAt": 1
+}
