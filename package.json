@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host=0.0.0.0 --strictPort false",
+    "prebuild": "tsx scripts/fetch-default-data.ts",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",

@@ -125,11 +125,13 @@ interface DataContextType {
   exportData: () => void;
   syncToRepo: (token?: string, repo?: string) => Promise<boolean>;
   fetchFromRepo: (token?: string, repo?: string) => Promise<boolean>;
+  isReady: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  const [isReady, setIsReady] = useState(false);
   const [state, setState] = useState<AppState>(() => {
     const saved = localStorage.getItem('yunest_data');
     if (saved) {
@@ -162,29 +164,43 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // 1. 自动同步逻辑：初始化与增量更新
   useEffect(() => {
     const initializeData = async () => {
-      // 如果没有本地数据，先尝试加载内置默认数据
-      const hasLocalData = localStorage.getItem('yunest_data');
-      if (!hasLocalData) {
-        try {
-          const res = await fetch('/data/default_data.json');
-          if (res.ok) {
-            const data = await res.json();
-            console.log('YuNest: 加载项目内置默认数据');
-            importData(data);
+      let currentUpdatedAt = state.updatedAt;
+
+      // 1. 先尝试加载内置默认数据 (用于初次部署或代码更新后的数据同步)
+      try {
+        const res = await fetch(`/data/default_data.json?t=${Date.now()}`, { 
+          cache: 'no-store',
+          headers: { 
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
-        } catch (e) {
-          console.warn('Failed to load default_data.json', e);
+        });
+        if (res.ok) {
+          const defaultData = await res.json();
+          const hasLocalData = localStorage.getItem('yunest_data');
+          
+          // 如果没有本地数据，或者内置数据的 updatedAt 比较新，则加载
+          if (!hasLocalData || (defaultData.updatedAt && defaultData.updatedAt > currentUpdatedAt)) {
+            console.log('YuNest: 加载项目内置默认数据 (发现更新或初次加载)');
+            importData(defaultData);
+            currentUpdatedAt = defaultData.updatedAt || Date.now();
+          }
         }
+      } catch (e) {
+        console.warn('Failed to load default_data.json', e);
       }
 
-      // 如果开启了同步，尝试从云端拉取更新
+      // 2. 如果开启了同步，尝试从云端拉取更新
       if (state.settings.githubSync && state.settings.autoSync && state.settings.githubToken && state.settings.githubRepo) {
         try {
           const token = state.settings.githubToken;
           const repo = state.settings.githubRepo;
           const path = 'data/yunest_data.json';
           
+          // GitHub API 不允许自定义 Cache-Control 等 Header，否则会触发 CORS 预检失败
           const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+            cache: 'no-store', // 使用 fetch 标准的 cache 属性
             headers: {
               'Authorization': `Bearer ${token}`,
               'Accept': 'application/vnd.github+json',
@@ -196,12 +212,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             const content = decodeURIComponent(escape(atob(data.content)));
             const remoteData = JSON.parse(content) as AppState;
             
-            // 只有当云端更新时间晚于当前时间才同步（包括从 default_data.json 加载后的时间）
-            if (remoteData.updatedAt && remoteData.updatedAt > state.updatedAt) {
+            // 只有当云端更新时间晚于当前时间才同步
+            if (remoteData.updatedAt && remoteData.updatedAt > currentUpdatedAt) {
               console.log('YuNest: 发现云端有更新，正在同步...');
               remoteData.settings.githubToken = token;
               remoteData.settings.githubRepo = repo;
               importData(remoteData);
+            } else {
+              console.log('YuNest: 本地数据已是最新');
             }
           }
         } catch (err) {
@@ -210,14 +228,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initializeData();
+    initializeData().finally(() => {
+      setIsReady(true);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.settings.githubSync, state.settings.autoSync]);
 
   // 2. 状态持久化到本地（放在同步逻辑后，避免初次加载时过早写入空数据）
   useEffect(() => {
-    localStorage.setItem('yunest_data', JSON.stringify(state));
-  }, [state]);
+    if (isReady) {
+      localStorage.setItem('yunest_data', JSON.stringify(state));
+    }
+  }, [state, isReady]);
 
   const updateSettings = useCallback((newSettings: Partial<Settings>) => {
     setState((prev) => ({ 
@@ -475,6 +497,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         exportData,
         syncToRepo,
         fetchFromRepo,
+        isReady,
       }}
     >
       {children}

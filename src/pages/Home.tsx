@@ -65,7 +65,7 @@ function useClock(timezoneID?: string, language: 'zh-CN' | 'en-US' = 'zh-CN') {
 }
 
 export default function Home() {
-  const { state } = useData();
+  const { state, isReady } = useData();
   const { settings, categories } = state;
   const t = TRANSLATIONS[settings.language || 'zh-CN'];
   const navigate = useNavigate();
@@ -235,6 +235,24 @@ export default function Home() {
       setShowAuthModal(true);
     }
   };
+
+  // 如果数据还没准备好，渲染加载界面（必须放在所有 Hook 之后以遵循 Rules of Hooks）
+  if (!isReady) {
+    return (
+      <div className="fixed inset-0 z-[1000] bg-[#0a0a0a] flex flex-col items-center justify-center">
+        <div className="relative">
+          {/* 品牌标识 */}
+          <div className="text-3xl font-extralight tracking-[0.5em] text-white/90 uppercase animate-pulse">
+            {settings.siteName || 'YuNest'}
+          </div>
+          {/* 进度条装饰 */}
+          <div className="mt-8 w-48 h-[1px] bg-white/10 relative overflow-hidden">
+            <div className="absolute inset-0 bg-white/40 animate-loading-bar" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /**
    * 渲染图标：优先级依次为
