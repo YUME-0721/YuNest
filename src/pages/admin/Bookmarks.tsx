@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { useData, type Category, type Bookmark } from '../../context/DataContext.tsx';
 import * as Icons from 'lucide-react';
-import { Plus, Edit2, Trash2, FolderOpen, ChevronUp, ChevronDown, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderOpen, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
 
@@ -182,18 +182,6 @@ export default function Bookmarks() {
           <h2 className="text-3xl font-extrabold tracking-tight">{t.bookmarksTitle}</h2>
           <p className="text-slate-500">{t.bookmarksDesc}</p>
         </div>
-        <button
-          id="add-category-btn"
-          onClick={() => {
-            setEditingCategory(null);
-            setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
-            setIsCategoryModalOpen(true);
-          }}
-          className="px-4 py-2.5 bg-[#ec5b13] text-white rounded-xl text-sm font-semibold hover:bg-[#ec5b13]/90 transition-all flex items-center gap-2 shadow-lg shadow-[#ec5b13]/20 self-start sm:self-auto"
-        >
-          <Plus className="w-5 h-5" />
-          {t.addCategory}
-        </button>
       </div>
 
       {/* 分类标签页 */}
@@ -213,6 +201,17 @@ export default function Bookmarks() {
                 <span className="text-xs ml-1 text-slate-400">({category.bookmarks.length})</span>
               </button>
             ))}
+            <button
+              onClick={() => {
+                setEditingCategory(null);
+                setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
+                setIsCategoryModalOpen(true);
+              }}
+              className="py-3 px-4 text-sm font-semibold text-slate-500 hover:text-[#ec5b13] flex items-center gap-1 transition-colors whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              {t.addCategory}
+            </button>
           </div>
         </div>
       )}
@@ -231,7 +230,7 @@ export default function Bookmarks() {
                   {t.visibilityHidden.match(/\(([^)]+)\)/)?.[1] || 'Hidden'}
                 </span>
               )}
-              <div className="flex items-center gap-1 ml-2">
+              <div className="flex items-center gap-1 ml-2 border-l border-slate-200 pl-3">
                 <button
                   onClick={() => handleEditCategory(currentCategory)}
                   className="p-1.5 rounded-md text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/5 transition-all"
@@ -251,18 +250,18 @@ export default function Bookmarks() {
                   <button
                     onClick={() => reorderCategories(currentCategoryIndex, currentCategoryIndex - 1)}
                     className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
-                    title="Up"
+                    title="Left"
                   >
-                    <ChevronUp className="w-3.5 h-3.5" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
                 )}
                 {currentCategoryIndex < state.categories.length - 1 && (
                   <button
                     onClick={() => reorderCategories(currentCategoryIndex, currentCategoryIndex + 1)}
                     className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
-                    title="Down"
+                    title="Right"
                   >
-                    <ChevronDown className="w-3.5 h-3.5" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -274,7 +273,7 @@ export default function Bookmarks() {
                 setBookmarkForm({ title: '', url: '', lanUrl: '', icon: '', description: '' });
                 setIsBookmarkModalOpen(true);
               }}
-              className="text-[#ec5b13] text-sm font-semibold flex items-center gap-1 hover:underline"
+              className="px-4 py-2 bg-[#ec5b13] text-white rounded-xl text-sm font-semibold hover:bg-[#ec5b13]/90 transition-all flex items-center gap-2 shadow-sm"
             >
               <Plus className="w-4 h-4" />
               {t.addNewBookmark}

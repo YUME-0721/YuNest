@@ -135,14 +135,21 @@ export default function Home() {
     };
   }, []);
 
-  // 监听滚动，控制标题显隐
+  // 监听滚动，控制标题显隐（向下滚动隐藏，向上滚动或在顶部显示）
   useEffect(() => {
+    let lastScrollY = window.scrollY;
     const handleScroll = () => {
-      if (window.scrollY > 20) {
+      const currentScrollY = window.scrollY;
+      const safeScrollY = Math.max(0, currentScrollY);
+
+      if (safeScrollY <= 20) {
+        setIsScrolled(false);
+      } else if (safeScrollY > lastScrollY) {
         setIsScrolled(true);
-      } else {
+      } else if (safeScrollY < lastScrollY) {
         setIsScrolled(false);
       }
+      lastScrollY = safeScrollY;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -573,14 +580,14 @@ export default function Home() {
                   >
                     {showPassword ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
                   </button>
-                  {authError && (
-                    <div className="mt-4 flex items-center justify-center gap-2 text-[11px] font-bold tracking-widest text-red-400/90 uppercase animate-fade-in">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      {t.authFailed}
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                    </div>
-                  )}
                 </div>
+                {authError && (
+                  <div className="flex items-center justify-center gap-2 text-[11px] font-bold tracking-widest text-red-400/90 uppercase animate-fade-in">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    {t.authFailed}
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  </div>
+                )}
 
                 <button
                   type="submit"

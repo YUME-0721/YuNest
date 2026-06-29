@@ -11,7 +11,7 @@ export const TRANSLATIONS = {
     adminAuthTitle: '管理认证',
     adminAuthDesc: '进入后台需要验证管理员密码',
     adminAuthInput: '输入认证密码',
-    adminAuthSubmit: '进入后台',
+    adminAuthSubmit: '登录',
     authFailed: '密码认证失败，请核对后重试',
     openMethod: '打开方式',
     defaultUrl: '默认地址',
