@@ -12,6 +12,10 @@ export interface Bookmark {
   lanUrl?: string; // 内网地址
   icon: string;
   description?: string;
+  size?: '1x1' | '1x2' | '2x1' | '2x2';
+  itemType?: 'link' | 'widget';
+  widgetType?: string;
+  widgetConfig?: any;
 }
 
 export interface Category {
@@ -47,11 +51,13 @@ export interface Settings {
   authRedirect?: boolean;
   autoSync?: boolean;
   githubSync?: boolean;
+  widgetAlignment?: 'left' | 'center' | 'right';
 }
 
 export interface AppState {
   settings: Settings;
   categories: Category[];
+  widgets: Bookmark[];
   updatedAt: number;
 }
 
@@ -102,11 +108,13 @@ export const DEFAULT_SETTINGS: Settings = {
   // NOTE: 如果环境变量中配置了 Token，则默认开启自动同步，实现“一次部署，全站统一”
   autoSync: !!envGithubToken,
   githubSync: !!envGithubToken,
+  widgetAlignment: 'center',
 };
 
 const defaultState: AppState = {
   settings: DEFAULT_SETTINGS,
   categories: [],
+  widgets: [],
   updatedAt: 0,
 };
 
@@ -121,6 +129,10 @@ interface DataContextType {
   updateBookmark: (categoryId: string, bookmarkId: string, bookmark: Partial<Bookmark>) => void;
   deleteBookmark: (categoryId: string, bookmarkId: string) => void;
   reorderBookmarks: (categoryId: string, fromIndex: number, toIndex: number) => void;
+  addWidget: (widget: Omit<Bookmark, 'id'>) => void;
+  updateWidget: (widgetId: string, widget: Partial<Bookmark>) => void;
+  deleteWidget: (widgetId: string) => void;
+  reorderWidgets: (fromIndex: number, toIndex: number) => void;
   importData: (data: AppState) => void;
   exportData: () => void;
   syncToRepo: (token?: string, repo?: string) => Promise<boolean>;
@@ -137,6 +149,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        const extractedWidgets: Bookmark[] = parsed.widgets || [];
+        const cleanedCategories = (parsed.categories || []).map((c: any) => {
+          const cWidgets = (c.bookmarks || []).filter((b: any) => b.itemType === 'widget');
+          extractedWidgets.push(...cWidgets);
+          return {
+            layout: 'card', 
+            isHidden: false, // 默认旧数据为公开
+            ...c,
+            bookmarks: (c.bookmarks || []).filter((b: any) => b.itemType !== 'widget')
+          };
+        });
+
         // NOTE: 兼容旧版数据结构，自动补全新增字段
         return {
           ...defaultState,
@@ -148,11 +172,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             githubToken: parsed.settings?.githubToken || envGithubToken,
             githubRepo: parsed.settings?.githubRepo || envGithubRepo
           },
-          categories: (parsed.categories || []).map((c: any) => ({
-            layout: 'card', 
-            isHidden: false, // 默认旧数据为公开
-            ...c
-          }))
+          widgets: extractedWidgets,
+          categories: cleanedCategories
         };
       } catch (e) {
         console.error('Failed to parse saved data', e);
@@ -342,6 +363,39 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const addWidget = useCallback((widget: Omit<Bookmark, 'id'>) => {
+    setState((prev) => ({
+      ...prev,
+      widgets: [...prev.widgets, { ...widget, id: `w_${Date.now()}` }],
+      updatedAt: Date.now()
+    }));
+  }, []);
+
+  const updateWidget = useCallback((widgetId: string, widget: Partial<Bookmark>) => {
+    setState((prev) => ({
+      ...prev,
+      widgets: prev.widgets.map((w) => (w.id === widgetId ? { ...w, ...widget } : w)),
+      updatedAt: Date.now()
+    }));
+  }, []);
+
+  const deleteWidget = useCallback((widgetId: string) => {
+    setState((prev) => ({
+      ...prev,
+      widgets: prev.widgets.filter((w) => w.id !== widgetId),
+      updatedAt: Date.now()
+    }));
+  }, []);
+
+  const reorderWidgets = useCallback((fromIndex: number, toIndex: number) => {
+    setState((prev) => {
+      const newWidgets = [...prev.widgets];
+      const [moved] = newWidgets.splice(fromIndex, 1);
+      newWidgets.splice(toIndex, 0, moved);
+      return { ...prev, widgets: newWidgets, updatedAt: Date.now() };
+    });
+  }, []);
+
   const importData = useCallback((data: AppState) => {
     setState((prev) => ({
       ...defaultState,
@@ -493,6 +547,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         updateBookmark,
         deleteBookmark,
         reorderBookmarks,
+        addWidget,
+        updateWidget,
+        deleteWidget,
+        reorderWidgets,
         importData,
         exportData,
         syncToRepo,

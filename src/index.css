@@ -11,6 +11,15 @@
   --glass-opacity: 0.45;
   --glass-bg: rgba(0, 0, 0, var(--glass-opacity));
   --glass-border: rgba(255, 255, 255, 0.15);
+  
+  /* NOTE: Widget Base Size */
+  --widget-size: calc(50vw - 20px);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --widget-size: 140px;
+  }
 }
 
 /* NOTE: Tailwind v4 preflight 已包含合理的 CSS 重置，此处不再重复设置 margin/padding */

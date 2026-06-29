@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { useData, type Category, type Bookmark } from '../../context/DataContext.tsx';
 import * as Icons from 'lucide-react';
-import { Plus, Edit2, Trash2, FolderOpen, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderOpen, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe, AlarmClock, Search, CloudSun } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
 
@@ -21,6 +21,10 @@ export default function Bookmarks() {
     updateBookmark,
     deleteBookmark,
     reorderBookmarks,
+    addWidget,
+    updateWidget,
+    deleteWidget,
+    reorderWidgets,
   } = useData();
   const t = TRANSLATIONS[state.settings.language || 'zh-CN'];
   const [activeCategory, setActiveCategory] = useState<string>(state.categories[0]?.id || '');
@@ -38,7 +42,7 @@ export default function Bookmarks() {
   // 书签模态框状态
   const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [bookmarkForm, setBookmarkForm] = useState({ title: '', url: '', lanUrl: '', icon: '', description: '' });
+  const [bookmarkForm, setBookmarkForm] = useState<{ title: string; url: string; lanUrl: string; icon: string; description: string; }>({ title: '', url: '', lanUrl: '', icon: '', description: '' });
 
   // 确认弹窗状态
   const [confirmModal, setConfirmModal] = useState<{
@@ -98,11 +102,11 @@ export default function Bookmarks() {
 
   // 书签处理器
   const handleSaveBookmark = () => {
-    if (!bookmarkForm.title || !bookmarkForm.url || !activeCategory) return;
+    if (!bookmarkForm.title || !activeCategory || !bookmarkForm.url) return;
     
-    const finalForm = { ...bookmarkForm };
+    const finalForm = { ...bookmarkForm, itemType: 'link' } as any;
     // 如果没有填写图标，尝试自动补全为解析出的 favicon URL，实现数据固化，提升加载速度
-    if (!finalForm.icon) {
+    if (!finalForm.icon && finalForm.url) {
       finalForm.icon = getFaviconUrl(finalForm.url);
     }
 
@@ -120,9 +124,9 @@ export default function Bookmarks() {
     setEditingBookmark(bookmark);
     setBookmarkForm({
       title: bookmark.title,
-      url: bookmark.url,
+      url: bookmark.url || '',
       lanUrl: bookmark.lanUrl || '',
-      icon: bookmark.icon,
+      icon: bookmark.icon || '',
       description: bookmark.description || '',
     });
     setIsBookmarkModalOpen(true);
@@ -288,8 +292,6 @@ export default function Bookmarks() {
                   <th className="px-4 py-3 font-semibold w-8"></th>
                   <th className="px-4 py-3 font-semibold w-14">{t.tableIcon}</th>
                   <th className="px-4 py-3 font-semibold">{t.tableName}</th>
-                  <th className="px-4 py-3 font-semibold hidden sm:table-cell">{t.tableUrl}</th>
-                  <th className="px-4 py-3 font-semibold hidden md:table-cell">{t.tableDesc}</th>
                   <th className="px-4 py-3 font-semibold text-right">{t.tableActions}</th>
                 </tr>
               </thead>
@@ -322,12 +324,6 @@ export default function Bookmarks() {
                       </div>
                     </td>
                     <td className="px-4 py-3 font-medium text-slate-900">{bookmark.title}</td>
-                    <td className="px-4 py-3 text-slate-500 text-sm hidden sm:table-cell max-w-48 truncate">
-                      {bookmark.url}
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 text-sm hidden md:table-cell">
-                      {bookmark.description || '-'}
-                    </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
                         <button
@@ -356,7 +352,7 @@ export default function Bookmarks() {
                 ))}
                 {currentCategory.bookmarks.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-2">
                         <FolderOpen className="w-10 h-10 text-slate-300" />
                         <p>{t.emptyBookmarks}</p>
@@ -494,56 +490,23 @@ export default function Bookmarks() {
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-semibold text-slate-700">{t.bookmarkTitle}</label>
-                <input
-                  type="text"
-                  id="bookmark-name-input"
-                  className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="..."
-                  value={bookmarkForm.title}
-                  onChange={(e) => setBookmarkForm({ ...bookmarkForm, title: e.target.value })}
-                  autoFocus
-                />
+                <input type="text" className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors" placeholder="..." value={bookmarkForm.title} onChange={(e) => setBookmarkForm({ ...bookmarkForm, title: e.target.value })} autoFocus />
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700">{t.bookmarkUrl}</label>
-                <input
-                  type="text"
-                  id="bookmark-url-input"
-                  className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="https://example.com"
-                  value={bookmarkForm.url}
-                  onChange={(e) => setBookmarkForm({ ...bookmarkForm, url: e.target.value })}
-                />
+                <input type="text" className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors" placeholder="https://example.com" value={bookmarkForm.url} onChange={(e) => setBookmarkForm({ ...bookmarkForm, url: e.target.value })} />
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700">{t.bookmarkLanUrl}</label>
-                <input
-                  type="text"
-                  className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="http://192.168.1.10"
-                  value={bookmarkForm.lanUrl}
-                  onChange={(e) => setBookmarkForm({ ...bookmarkForm, lanUrl: e.target.value })}
-                />
+                <input type="text" className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors" placeholder="http://192.168.1.10" value={bookmarkForm.lanUrl} onChange={(e) => setBookmarkForm({ ...bookmarkForm, lanUrl: e.target.value })} />
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700">{t.bookmarkDesc}</label>
-                <input
-                  type="text"
-                  className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="..."
-                  value={bookmarkForm.description}
-                  onChange={(e) => setBookmarkForm({ ...bookmarkForm, description: e.target.value })}
-                />
+                <input type="text" className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors" placeholder="..." value={bookmarkForm.description} onChange={(e) => setBookmarkForm({ ...bookmarkForm, description: e.target.value })} />
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700">{t.bookmarkIcon}</label>
-                <input
-                  type="text"
-                  className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                  placeholder="URL / Lucide"
-                  value={bookmarkForm.icon}
-                  onChange={(e) => setBookmarkForm({ ...bookmarkForm, icon: e.target.value })}
-                />
+                <input type="text" className="w-full mt-1.5 rounded-xl border-slate-200 bg-slate-50 px-4 py-3 outline-none border focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors" placeholder="URL / Lucide" value={bookmarkForm.icon} onChange={(e) => setBookmarkForm({ ...bookmarkForm, icon: e.target.value })} />
                 <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
                   <p>{t.autoFaviconTip}</p>
                   <p>{state.settings.language === 'zh-CN' ? '点击 ' : 'Click '} <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-[#ec5b13] hover:underline font-medium">{t.iconsLibrary}</a>，{state.settings.language === 'zh-CN' ? '跳转到图标库' : 'jump to icons library'}</p>
@@ -567,6 +530,7 @@ export default function Bookmarks() {
           </div>
         </div>
       )}
+
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}

@@ -9,6 +9,7 @@ import { Search, Settings as SettingsIcon, ExternalLink, Lock, CheckCircle2, Ale
 import { Link, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { TRANSLATIONS } from '../i18n/translations.ts';
+import { WidgetRenderer } from '../components/widgets/WidgetRenderer.tsx';
 
 /**
  * 根据域名自动获取 favicon
@@ -59,14 +60,14 @@ function useClock(timezoneID?: string, language: 'zh-CN' | 'en-US' = 'zh-CN') {
   };
 
   return { 
-    time: formatWithFallback(timeOptions), 
-    date: formatWithFallback(dateOptions) 
+    time: '', 
+    date: '' 
   };
 }
 
 export default function Home() {
   const { state, isReady } = useData();
-  const { settings, categories } = state;
+  const { settings, categories, widgets = [] } = state;
   const t = TRANSLATIONS[settings.language || 'zh-CN'];
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -392,72 +393,54 @@ export default function Home() {
       </div>
 
       {/* 主内容区域 */}
-      <main className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 sm:px-6">
+      <main className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 sm:px-6 pt-16 sm:pt-24">
 
-        {/* 时钟和日期 */}
-        <header className="text-center pt-12 sm:pt-16 mb-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          {/* 移动端显示的标题 */}
-          <h1 className="sm:hidden text-xs font-bold tracking-[0.4em] text-white/40 uppercase mb-4">
+        {/* 移动端显示的标题 (如果没有 Widget 也许需要保留) */}
+        <header className="text-center mb-8 animate-fade-in sm:hidden" style={{ animationDelay: '0.1s' }}>
+          <h1 className="text-xs font-bold tracking-[0.4em] text-white/40 uppercase">
             {settings.siteName}
           </h1>
-          <div className="text-5xl sm:text-6xl font-extralight tracking-tight text-white/90 mb-2 tabular-nums">
-            {time}
-          </div>
-          <div className="flex items-center justify-center gap-2">
-            <p className="text-white/40 text-sm tracking-widest">{date}</p>
-            {settings.timezone && (
-              <span className="flex items-center gap-1.5 ml-1 text-white/40 text-sm tracking-widest uppercase">
-                <span className="opacity-50">/</span>
-                {(() => {
-                  if (settings.timezone.includes('Asia')) return <Icons.Compass className="w-3.5 h-3.5" />;
-                  if (settings.timezone.includes('Europe')) return <Icons.Map className="w-3.5 h-3.5" />;
-                  if (settings.timezone.includes('America')) return <Icons.MapPin className="w-3.5 h-3.5" />;
-                  if (settings.timezone.includes('Australia')) return <Icons.Navigation className="w-3.5 h-3.5" />;
-                  if (settings.timezone.includes('Africa')) return <Icons.Sun className="w-3.5 h-3.5" />;
-                  return <Icons.Globe className="w-3.5 h-3.5" />;
-                })()}
-                <span className="text-[11px] font-medium tracking-[0.2em]">
-                  {settings.timezone.split('/').pop()?.replace('_', ' ')}
-                </span>
-              </span>
-            )}
-          </div>
         </header>
 
-
-
-        {/* 搜索栏 */}
-        <section className="w-full max-w-2xl mb-16 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className={`relative group search-glow rounded-2xl transition-all duration-500 ${isSearchFocused ? 'scale-[1.02]' : ''}`}>
+        {/* 全局小组件区域 */}
+        {widgets && widgets.length > 0 && (
+          <div 
+            className={`w-full max-w-7xl mb-12 animate-fade-in flex ${
+              settings.widgetAlignment === 'left' ? 'justify-start' : 
+              settings.widgetAlignment === 'right' ? 'justify-end' : 
+              'justify-center'
+            }`} 
+            style={{ animationDelay: '0.2s' }}
+          >
             <div 
-              className="absolute inset-y-0 left-0 pl-4 flex items-center cursor-pointer z-20 group/engine"
-              onClick={toggleEngine}
-              title={`点击切换搜索引擎 (当前: ${currentEngine.name})`}
+              className="grid gap-3 sm:gap-4 px-1" 
+              style={{ 
+                gridTemplateColumns: 'repeat(auto-fit, var(--widget-size))',
+                gridAutoRows: 'var(--widget-size)',
+                gridAutoFlow: 'dense',
+                width: '100%',
+                justifyContent: settings.widgetAlignment === 'left' ? 'start' : 
+                                settings.widgetAlignment === 'right' ? 'end' : 
+                                'center'
+              }}
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors">
-                <img 
-                  src={currentEngine.icon} 
-                  alt={currentEngine.name} 
-                  className="w-5 h-5 grayscale group-hover/engine:grayscale-0 transition-all"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://www.google.com/favicon.ico';
-                  }}
-                />
-              </div>
+              {widgets.map((widget) => {
+                const colSpanClass = 
+                  widget.size?.startsWith('4x') ? 'col-span-2 sm:col-span-4' :
+                  widget.size?.startsWith('3x') ? 'col-span-2 sm:col-span-3' :
+                  widget.size?.startsWith('2x') ? 'col-span-2' : 'col-span-1';
+                const rowSpanClass = widget.size?.endsWith('x2') ? 'row-span-2' : 'row-span-1';
+                // NOTE: 移除了 aspect-[...] 以避免内部高度冲突，完全依赖 grid-auto-rows
+                
+                return (
+                  <div key={widget.id} className={`${colSpanClass} ${rowSpanClass} h-full w-full`}>
+                    <WidgetRenderer bookmark={widget} />
+                  </div>
+                );
+              })}
             </div>
-            <input
-              type="text"
-              id="search-input"
-              className="w-full py-4 pl-14 pr-6 glass rounded-2xl focus:bg-white/10 transition-all duration-300 text-base font-light placeholder:text-white/20 outline-none text-white/90 border-0"
-              placeholder={t.searchPlaceholder.replace('{engine}', currentEngine.name)}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearch}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-            />
           </div>
-        </section>
+        )}
 
         {/* 书签分组 - 改为垂直排列，内部书签横向排列 */}
         <div className="w-full max-w-7xl flex flex-col gap-12 pb-24">
@@ -476,7 +459,7 @@ export default function Home() {
 
               {/* 书签列表 - 根据分类布局模式渲染 */}
               {category.layout === 'grid' ? (
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-x-1 sm:gap-x-2 gap-y-5 px-1">
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-3 sm:gap-4 px-1">
                   {category.bookmarks.map((bookmark) => (
                     <a
                       key={bookmark.id}
@@ -484,12 +467,12 @@ export default function Home() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onContextMenu={(e) => handleContextMenu(e, bookmark)}
-                      className="flex flex-col items-center group w-full"
+                      className="flex flex-col items-center justify-center group w-full h-full col-span-1 row-span-1 aspect-square glass rounded-2xl p-2 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
                     >
-                      <div className="w-16 h-16 rounded-2xl glass mb-2 flex items-center justify-center group-hover:bg-white/10 group-hover:-translate-y-1 group-hover:border-white/20 transition-all duration-300">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center group-hover:-translate-y-1 transition-transform duration-300">
                         {renderIcon(bookmark.icon, bookmark.url, 'w-8 h-8')}
                       </div>
-                      <span className="text-[13px] font-medium text-white/50 group-hover:text-white transition-colors duration-300 text-center truncate w-full px-1">
+                      <span className="text-[12px] mt-1 font-medium text-white/50 group-hover:text-white transition-colors duration-300 text-center truncate w-full px-1">
                         {bookmark.title}
                       </span>
                     </a>
