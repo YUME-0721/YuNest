@@ -6,9 +6,10 @@ import { TRANSLATIONS } from '../../i18n/translations';
 
 interface SearchWidgetProps {
   size: string;
+  showBackground?: boolean;
 }
 
-export const SearchWidget: React.FC<SearchWidgetProps> = ({ size }) => {
+export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground }) => {
   const { state } = useData();
   const { settings } = state;
   const t = TRANSLATIONS[settings.language || 'zh-CN'];
@@ -57,12 +58,16 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size }) => {
     setCurrentEngine(availableEngines[nextIndex]);
   };
 
+  const bg = showBackground
+    ? 'bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 shadow-lg'
+    : 'bg-transparent hover:bg-white/10 border border-transparent';
+
   if (size.startsWith('1x')) {
     return (
       <>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="w-full h-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg flex flex-col items-center justify-center p-3 text-white transition-all group cursor-pointer"
+          className={`w-full h-full ${bg} rounded-2xl flex flex-col items-center justify-center p-3 text-white transition-all group cursor-pointer`}
         >
           <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform shadow-inner">
             {currentEngine.icon ? (
@@ -133,8 +138,10 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size }) => {
     );
   }
 
+  const heightClass = showBackground ? 'h-full' : 'h-auto';
+
   return (
-    <div className="w-full h-full bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg flex items-center justify-center p-4">
+    <div className={`w-full ${heightClass} ${bg} rounded-2xl flex items-center justify-center p-4`}>
       <form onSubmit={handleSearch} className={`w-full relative group ${
         size === '3x1' ? 'max-w-lg' :
         size === '4x1' ? 'max-w-xl' :

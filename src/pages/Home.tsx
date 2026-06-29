@@ -393,7 +393,9 @@ export default function Home() {
       </div>
 
       {/* 主内容区域 */}
-      <main className="relative z-10 flex flex-col items-center justify-start min-h-screen px-4 sm:px-6 pt-16 sm:pt-24">
+      <main className={`relative z-10 flex flex-col items-center justify-start min-h-screen px-4 sm:px-6 ${
+        widgets && widgets.length > 0 ? 'pt-6 sm:pt-10' : 'pt-16 sm:pt-24'
+      }`}>
 
         {/* 移动端显示的标题 (如果没有 Widget 也许需要保留) */}
         <header className="text-center mb-8 animate-fade-in sm:hidden" style={{ animationDelay: '0.1s' }}>
@@ -413,29 +415,31 @@ export default function Home() {
             style={{ animationDelay: '0.2s' }}
           >
             <div 
-              className="grid gap-3 sm:gap-4 px-1" 
+              className="flex flex-wrap gap-3 sm:gap-4 px-1" 
               style={{ 
-                gridTemplateColumns: 'repeat(auto-fit, var(--widget-size))',
-                gridAutoRows: 'var(--widget-size)',
-                gridAutoFlow: 'dense',
                 width: '100%',
-                justifyContent: settings.widgetAlignment === 'left' ? 'start' : 
-                                settings.widgetAlignment === 'right' ? 'end' : 
+                justifyContent: settings.widgetAlignment === 'left' ? 'flex-start' : 
+                                settings.widgetAlignment === 'right' ? 'flex-end' : 
                                 'center'
               }}
             >
-              {widgets.map((widget) => {
-                const colSpanClass = 
-                  widget.size?.startsWith('4x') ? 'col-span-2 sm:col-span-4' :
-                  widget.size?.startsWith('3x') ? 'col-span-2 sm:col-span-3' :
-                  widget.size?.startsWith('2x') ? 'col-span-2' : 'col-span-1';
-                const rowSpanClass = widget.size?.endsWith('x2') ? 'row-span-2' : 'row-span-1';
-                // NOTE: 移除了 aspect-[...] 以避免内部高度冲突，完全依赖 grid-auto-rows
+              {widgets.map((widget, index) => {
+                const widthClass = 
+                  widget.size?.startsWith('4x') ? 'widget-width-4x' :
+                  widget.size?.startsWith('3x') ? 'widget-width-3x' :
+                  widget.size?.startsWith('2x') ? 'widget-width-2x' : 'widget-width-1x';
                 
+                const heightClass = !widget.showBackground && !widget.size?.endsWith('x2')
+                  ? 'h-auto'
+                  : widget.size?.endsWith('x2') ? 'widget-height-2x' : 'widget-height-1x';
+
                 return (
-                  <div key={widget.id} className={`${colSpanClass} ${rowSpanClass} h-full w-full`}>
-                    <WidgetRenderer bookmark={widget} />
-                  </div>
+                  <React.Fragment key={widget.id}>
+                    {widget.wrapLine && index > 0 && <div className="w-full h-0 flex-shrink-0" />}
+                    <div className={`${widthClass} ${heightClass} flex-shrink-0`}>
+                      <WidgetRenderer bookmark={widget} />
+                    </div>
+                  </React.Fragment>
                 );
               })}
             </div>

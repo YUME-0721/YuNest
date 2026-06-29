@@ -58,5 +58,27 @@
       ]
     }
   ],
-  "updatedAt": 1746439200000
+  "widgets": [
+    {
+      "id": "w_default_clock",
+      "title": "Clock",
+      "url": "",
+      "icon": "",
+      "description": "",
+      "itemType": "widget",
+      "widgetType": "clock",
+      "size": "2x1"
+    },
+    {
+      "id": "w_default_search",
+      "title": "Search",
+      "url": "",
+      "icon": "",
+      "description": "",
+      "itemType": "widget",
+      "widgetType": "search",
+      "size": "4x1"
+    }
+  ],
+  "updatedAt": 1751210456000
 }

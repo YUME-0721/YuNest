@@ -4,9 +4,10 @@ import { Clock } from 'lucide-react';
 
 interface ClockWidgetProps {
   size: string;
+  showBackground?: boolean;
 }
 
-export const ClockWidget: React.FC<ClockWidgetProps> = ({ size }) => {
+export const ClockWidget: React.FC<ClockWidgetProps> = ({ size, showBackground }) => {
   const { state } = useData();
   const [now, setNow] = useState(new Date());
 
@@ -61,9 +62,12 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size }) => {
     timeZone: state.settings.timezone || undefined
   };
 
+  const bg = showBackground
+    ? 'bg-white/20 backdrop-blur-md border border-white/20 shadow-lg hover:bg-white/30'
+    : 'bg-transparent border border-transparent hover:bg-white/10';
   if (size === '1x2') {
     return (
-      <div className="w-full h-full relative overflow-hidden bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl flex flex-col items-center justify-between text-white p-5 shadow-lg group hover:bg-white/30 transition-all cursor-default">
+      <div className={`w-full h-full relative overflow-hidden ${bg} rounded-2xl flex flex-col items-center justify-between text-white p-5 transition-all cursor-default`}>
         {/* Stacked Time */}
         <div className="flex flex-col items-center justify-center my-auto py-4">
           <div className="text-6xl font-extrabold tracking-tight leading-none text-white drop-shadow-md">
@@ -96,8 +100,11 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size }) => {
     );
   }
 
+  const heightClass = showBackground ? 'h-full' : 'h-auto';
+  const justifyClass = showBackground ? 'justify-center' : 'justify-start pt-2';
+
   return (
-    <div className={`w-full h-full relative overflow-hidden bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl flex flex-col items-center justify-center text-white shadow-lg group hover:bg-white/30 transition-all cursor-default ${
+    <div className={`w-full ${heightClass} relative overflow-hidden ${bg} rounded-2xl flex flex-col items-center ${justifyClass} text-white transition-all cursor-default ${
       size === '1x1' ? 'p-2' : 'p-4'
     }`}>
       <div className={`font-bold tracking-tight drop-shadow-md text-center ${

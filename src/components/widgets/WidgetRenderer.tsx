@@ -11,9 +11,9 @@ interface WidgetRendererProps {
 export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ bookmark }) => {
   switch (bookmark.widgetType) {
     case 'clock':
-      return <ClockWidget size={bookmark.size || '1x1'} />;
+      return <ClockWidget size={bookmark.size || '1x1'} showBackground={bookmark.showBackground} />;
     case 'search':
-      return <SearchWidget size={bookmark.size || '1x1'} />;
+      return <SearchWidget size={bookmark.size || '1x1'} showBackground={bookmark.showBackground} />;
     case 'weather':
       return <WeatherWidget size={bookmark.size || '1x1'} />;
     default:

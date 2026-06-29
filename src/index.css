@@ -14,11 +14,13 @@
   
   /* NOTE: Widget Base Size */
   --widget-size: calc(50vw - 20px);
+  --widget-gap: 12px;
 }
 
 @media (min-width: 640px) {
   :root {
     --widget-size: 140px;
+    --widget-gap: 16px;
   }
 }
 
@@ -198,4 +200,34 @@ body {
 
 .admin-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* NOTE: Widget responsive sizing for Flexbox layout */
+.widget-width-1x {
+  width: var(--widget-size);
+}
+.widget-width-2x {
+  width: calc(2 * var(--widget-size) + var(--widget-gap));
+}
+.widget-width-3x {
+  width: calc(2 * var(--widget-size) + var(--widget-gap));
+}
+.widget-width-4x {
+  width: calc(2 * var(--widget-size) + var(--widget-gap));
+}
+
+@media (min-width: 640px) {
+  .widget-width-3x {
+    width: calc(3 * var(--widget-size) + 2 * var(--widget-gap));
+  }
+  .widget-width-4x {
+    width: calc(4 * var(--widget-size) + 3 * var(--widget-gap));
+  }
+}
+
+.widget-height-1x {
+  height: var(--widget-size);
+}
+.widget-height-2x {
+  height: calc(2 * var(--widget-size) + var(--widget-gap));
 }

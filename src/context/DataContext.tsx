@@ -16,6 +16,8 @@ export interface Bookmark {
   itemType?: 'link' | 'widget';
   widgetType?: string;
   widgetConfig?: any;
+  showBackground?: boolean;
+  wrapLine?: boolean;
 }
 
 export interface Category {
@@ -52,6 +54,7 @@ export interface Settings {
   autoSync?: boolean;
   githubSync?: boolean;
   widgetAlignment?: 'left' | 'center' | 'right';
+  widgetBackground?: boolean; // 小组件是否显示白色半透明背景
 }
 
 export interface AppState {
@@ -109,6 +112,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoSync: !!envGithubToken,
   githubSync: !!envGithubToken,
   widgetAlignment: 'center',
+  widgetBackground: false,
 };
 
 const defaultState: AppState = {
