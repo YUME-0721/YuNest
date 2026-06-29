@@ -77,7 +77,8 @@
       "description": "",
       "itemType": "widget",
       "widgetType": "search",
-      "size": "4x1"
+      "size": "4x1",
+      "wrapLine": true
     }
   ],
   "updatedAt": 1751210456000
