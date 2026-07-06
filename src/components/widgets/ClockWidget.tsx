@@ -101,12 +101,16 @@ export const ClockWidget: React.FC<ClockWidgetProps> = ({ size, showBackground }
   }
 
   const heightClass = showBackground ? 'h-full' : 'h-auto';
-  const justifyClass = showBackground ? 'justify-center' : 'justify-start pt-2';
+  const justifyClass = showBackground ? 'justify-center' : 'justify-start pt-1';
+
+  const paddingClass = size === '1x1'
+    ? 'p-2'
+    : showBackground
+      ? 'p-4'
+      : 'pt-2 pb-1 px-4';
 
   return (
-    <div className={`w-full ${heightClass} relative overflow-hidden ${bg} rounded-2xl flex flex-col items-center ${justifyClass} text-white transition-all cursor-default ${
-      size === '1x1' ? 'p-2' : 'p-4'
-    }`}>
+    <div className={`w-full ${heightClass} relative overflow-hidden ${bg} rounded-2xl flex flex-col items-center ${justifyClass} text-white transition-all cursor-default ${paddingClass}`}>
       <div className={`font-bold tracking-tight drop-shadow-md text-center ${
         size.startsWith('1x') ? 'text-2xl sm:text-3xl mb-1' : 'text-4xl sm:text-5xl md:text-6xl mb-2'
       }`}>

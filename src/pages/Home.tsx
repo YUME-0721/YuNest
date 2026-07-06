@@ -407,7 +407,7 @@ export default function Home() {
         {/* 全局小组件区域 */}
         {widgets && widgets.length > 0 && (
           <div 
-            className={`w-full max-w-7xl mb-12 animate-fade-in flex ${
+            className={`w-full max-w-7xl mb-6 animate-fade-in flex ${
               settings.widgetAlignment === 'left' ? 'justify-start' : 
               settings.widgetAlignment === 'right' ? 'justify-end' : 
               'justify-center'

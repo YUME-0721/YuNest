@@ -139,9 +139,13 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
   }
 
   const heightClass = showBackground ? 'h-full' : 'h-auto';
+  const paddingClass = showBackground ? 'p-4' : 'py-1 px-4';
+  const containerBg = showBackground
+    ? 'bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/20 shadow-lg'
+    : 'bg-transparent';
 
   return (
-    <div className={`w-full ${heightClass} ${bg} rounded-2xl flex items-center justify-center p-4`}>
+    <div className={`w-full ${heightClass} ${containerBg} rounded-2xl flex items-center justify-center ${paddingClass}`}>
       <form onSubmit={handleSearch} className={`w-full relative group ${
         size === '3x1' ? 'max-w-lg' :
         size === '4x1' ? 'max-w-xl' :
@@ -168,8 +172,8 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={t.searchPlaceholder.replace('{engine}', size.startsWith('1x') ? '' : currentEngine.name)}
-          className={`w-full bg-white/10 border outline-none text-white placeholder-white/50 transition-all shadow-inner ${
-            isFocused ? 'border-white/40 bg-white/20' : 'border-white/10 hover:border-white/30 hover:bg-white/15'
+          className={`w-full bg-black/30 backdrop-blur-md border outline-none text-white placeholder-white/60 transition-all shadow-lg hover:shadow-xl ${
+            isFocused ? 'border-white/30 bg-black/45 ring-1 ring-white/10' : 'border-white/10 hover:border-white/20 hover:bg-black/35'
           } ${
             size.startsWith('1x') ? 'h-10 pl-9 pr-8 sm:pl-11 rounded-xl text-xs' : 'h-14 pl-14 pr-14 rounded-2xl'
           }`}

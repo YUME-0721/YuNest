@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useData, PRESET_SEARCH_ENGINES, DEFAULT_SETTINGS, type Bookmark } from '../../context/DataContext.tsx';
-import { Settings as SettingsIcon, Image as ImageIcon, Search, CheckCircle, Upload, RefreshCw, Clock, Globe, LayoutGrid, AlarmClock, CloudSun, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Settings as SettingsIcon, Image as ImageIcon, Search, CheckCircle, Upload, RefreshCw, Clock, Globe, LayoutGrid, AlarmClock, CloudSun, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
 
@@ -341,31 +341,104 @@ export default function Settings() {
                   <p className="text-sm">{t.noWidgets || '暂无小组件，点击右上角添加'}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {state.widgets.map((widget, index) => (
-                    <div key={widget.id} className="relative group border border-slate-200 rounded-xl p-4 bg-slate-50 hover:bg-slate-100 transition-colors flex flex-col items-center gap-2">
-                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEditWidget(widget)} className="p-1 text-slate-400 hover:text-[#ec5b13] bg-white rounded shadow-sm"><Edit2 className="w-3 h-3" /></button>
-                        <button onClick={() => deleteWidget(widget.id)} className="p-1 text-slate-400 hover:text-red-500 bg-white rounded shadow-sm"><Trash2 className="w-3 h-3" /></button>
-                      </div>
-                      <div className="absolute top-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-col">
-                        {index > 0 && <button onClick={() => handleMoveWidget(index, 'up')} className="p-0.5 text-slate-400 hover:text-slate-600 bg-white rounded shadow-sm"><ChevronLeft className="w-3 h-3" /></button>}
-                        {index < state.widgets.length - 1 && <button onClick={() => handleMoveWidget(index, 'down')} className="p-0.5 text-slate-400 hover:text-slate-600 bg-white rounded shadow-sm"><ChevronRight className="w-3 h-3" /></button>}
-                      </div>
-                      <div className="w-12 h-12 bg-[#ec5b13]/10 text-[#ec5b13] rounded-lg flex items-center justify-center mb-1">
-                        {widget.widgetType === 'clock' ? <AlarmClock className="w-6 h-6" /> :
-                         widget.widgetType === 'search' ? <Search className="w-6 h-6" /> :
-                         widget.widgetType === 'weather' ? <CloudSun className="w-6 h-6" /> :
-                         <LayoutGrid className="w-6 h-6" />}
-                      </div>
-                      <div className="font-semibold text-slate-700 text-xs truncate w-full text-center">
-                        {widget.widgetType === 'clock' ? (t.widgetClock || '时钟与日期') :
-                         widget.widgetType === 'search' ? (t.widgetSearch || '快速搜索') :
-                         widget.widgetType === 'weather' ? (t.widgetWeather || '天气预报') : widget.title}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-mono bg-slate-200 px-2 py-0.5 rounded">{widget.size}</div>
-                    </div>
-                  ))}
+                <div 
+                  className="border border-slate-200/80 rounded-2xl p-4 sm:p-6 bg-slate-50/30 shadow-inner"
+                  style={{ 
+                    backgroundImage: 'radial-gradient(#e2e8f0 1.5px, transparent 1.5px)', 
+                    backgroundSize: '16px 16px' 
+                  }}
+                >
+                  <div className="text-[10px] sm:text-xs font-bold text-slate-400 mb-4 flex items-center gap-1.5 uppercase tracking-wider select-none">
+                    <Eye className="w-3.5 h-3.5 text-[#ec5b13]" />
+                    布局画布预览 (Mini Canvas Preview)
+                  </div>
+                  <div 
+                    className={`w-full flex flex-wrap gap-2.5 sm:gap-3 transition-all duration-300 ${
+                      localSettings.widgetAlignment === 'left' ? 'justify-start' : 
+                      localSettings.widgetAlignment === 'right' ? 'justify-end' : 
+                      'justify-center'
+                    }`}
+                  >
+                    {state.widgets.map((widget, index) => {
+                      const isZh = (state.settings.language || 'zh-CN') === 'zh-CN';
+                      const basisClass = 
+                        widget.size?.startsWith('4x') ? 'basis-full sm:basis-[95%]' :
+                        widget.size?.startsWith('3x') ? 'basis-[72%] sm:basis-[70%]' :
+                        widget.size?.startsWith('2x') ? 'basis-[47%] sm:basis-[46%]' :
+                        'basis-[22%] sm:basis-[21%]';
+                      
+                      const heightClass = widget.size?.endsWith('x2') ? 'h-32 sm:h-36' : 'h-16 sm:h-20';
+
+                      return (
+                        <React.Fragment key={widget.id}>
+                          {widget.wrapLine && index > 0 && <div className="w-full h-0 flex-shrink-0" />}
+                          <div 
+                            className={`relative group border border-slate-200 rounded-xl p-3 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-between gap-3 shadow-sm ${basisClass} ${heightClass} min-w-[70px] overflow-hidden`}
+                          >
+                            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+                              <div className="w-9 h-9 bg-[#ec5b13]/10 text-[#ec5b13] rounded-lg flex items-center justify-center shrink-0">
+                                {widget.widgetType === 'clock' ? <AlarmClock className="w-4 h-4 sm:w-5 sm:h-5" /> :
+                                 widget.widgetType === 'search' ? <Search className="w-4 h-4 sm:w-5 sm:h-5" /> :
+                                 widget.widgetType === 'weather' ? <CloudSun className="w-4 h-4 sm:w-5 sm:h-5" /> :
+                                 <LayoutGrid className="w-4 h-4 sm:w-5 sm:h-5" />}
+                              </div>
+                              <div className="flex flex-col min-w-0">
+                                <div className="font-bold text-slate-700 text-[11px] sm:text-xs truncate">
+                                  {widget.widgetType === 'clock' ? (t.widgetClock || '时钟与日期') :
+                                   widget.widgetType === 'search' ? (t.widgetSearch || '快速搜索') :
+                                   widget.widgetType === 'weather' ? (t.widgetWeather || '天气预报') : widget.title}
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                  <span className="text-[8px] sm:text-[9px] font-bold font-mono bg-slate-100 border border-slate-200 px-1 py-0.2 rounded text-slate-500">{widget.size}</span>
+                                  {widget.wrapLine && (
+                                    <span className="text-[8px] sm:text-[9px] font-medium bg-purple-50 border border-purple-200 px-1 py-0.2 rounded text-purple-600 shrink-0">{isZh ? '换行' : 'Line Wrap'}</span>
+                                  )}
+                                  {widget.showBackground && (
+                                    <span className="text-[8px] sm:text-[9px] font-medium bg-blue-50 border border-blue-200 px-1 py-0.2 rounded text-blue-600 shrink-0">{isZh ? '卡片' : 'Card BG'}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-0.5 sm:gap-1 opacity-0 sm:opacity-100 group-hover:opacity-100 transition-opacity shrink-0">
+                              <div className="flex items-center border border-slate-150 bg-slate-50 rounded-lg p-0.5">
+                                <button 
+                                  disabled={index === 0}
+                                  onClick={() => handleMoveWidget(index, 'up')} 
+                                  className={`p-0.5 rounded transition-colors ${index === 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-slate-800 hover:bg-white'}`}
+                                  title={isZh ? '前移' : 'Move Left'}
+                                >
+                                  <ChevronLeft className="w-3 h-3" />
+                                </button>
+                                <button 
+                                  disabled={index === state.widgets.length - 1}
+                                  onClick={() => handleMoveWidget(index, 'down')} 
+                                  className={`p-0.5 rounded transition-colors ${index === state.widgets.length - 1 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-slate-800 hover:bg-white'}`}
+                                  title={isZh ? '后移' : 'Move Right'}
+                                >
+                                  <ChevronRight className="w-3 h-3" />
+                                </button>
+                              </div>
+                              <button 
+                                onClick={() => handleEditWidget(widget)} 
+                                className="p-1 text-slate-400 hover:text-[#ec5b13] hover:bg-slate-100 rounded-lg transition-colors"
+                                title={t.edit || '编辑'}
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </button>
+                              <button 
+                                onClick={() => deleteWidget(widget.id)} 
+                                className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title={t.delete || '删除'}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </React.Fragment>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

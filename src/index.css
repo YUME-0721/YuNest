@@ -231,3 +231,9 @@ body {
 .widget-height-2x {
   height: calc(2 * var(--widget-size) + var(--widget-gap));
 }
+
+/* NOTE: 隐藏 Edge 等浏览器默认的密码明文切换和清除按钮，避免与自定义眼睛图标重叠 */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
