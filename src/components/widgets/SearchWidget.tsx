@@ -47,7 +47,10 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.open(currentEngine.url.replace('%s', encodeURIComponent(searchQuery)), '_blank');
+      const url = currentEngine.url.includes('%s')
+        ? currentEngine.url.replace('%s', encodeURIComponent(searchQuery))
+        : `${currentEngine.url}${encodeURIComponent(searchQuery)}`;
+      window.open(url, '_blank');
       setSearchQuery('');
     }
   };
