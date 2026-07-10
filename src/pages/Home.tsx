@@ -136,6 +136,18 @@ export default function Home() {
     };
   }, []);
 
+  // 监听搜索框输入，更新 Home 的 searchQuery 以实现书签过滤功能
+  useEffect(() => {
+    const handleSearchQueryChange = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      setSearchQuery(customEvent.detail || '');
+    };
+    window.addEventListener('yunest-search-query', handleSearchQueryChange);
+    return () => {
+      window.removeEventListener('yunest-search-query', handleSearchQueryChange);
+    };
+  }, []);
+
   // 监听滚动，控制标题显隐（向下滚动隐藏，向上滚动或在顶部显示）
   useEffect(() => {
     let lastScrollY = window.scrollY;

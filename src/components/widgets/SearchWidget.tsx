@@ -44,6 +44,11 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
     availableEngines.find(e => e.url === settings.searchEngine) || availableEngines[0]
   );
 
+  const handleSearchQueryChange = (value: string) => {
+    setSearchQuery(value);
+    window.dispatchEvent(new CustomEvent('yunest-search-query', { detail: value }));
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -51,7 +56,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
         ? currentEngine.url.replace('%s', encodeURIComponent(searchQuery))
         : `${currentEngine.url}${encodeURIComponent(searchQuery)}`;
       window.open(url, '_blank');
-      setSearchQuery('');
+      handleSearchQueryChange('');
     }
   };
 
@@ -108,7 +113,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
                   type="text"
                   autoFocus
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchQueryChange(e.target.value)}
                   placeholder={t.searchPlaceholder.replace('{engine}', currentEngine.name)}
                   className="w-full h-14 pl-14 pr-14 rounded-2xl bg-white/70 border border-slate-200 outline-none text-slate-800 text-base placeholder-slate-400 focus:border-purple-400 focus:bg-white focus:ring-2 focus:ring-purple-200 transition-all shadow-sm"
                 />
@@ -171,7 +176,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchQueryChange(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={t.searchPlaceholder.replace('{engine}', size.startsWith('1x') ? '' : currentEngine.name)}
