@@ -129,10 +129,12 @@ interface DataContextType {
   updateCategory: (id: string, category: Partial<Category>) => void;
   deleteCategory: (id: string) => void;
   reorderCategories: (fromIndex: number, toIndex: number) => void;
+  setCategoriesOrder: (newCategories: Category[]) => void;
   addBookmark: (categoryId: string, bookmark: Omit<Bookmark, 'id'>) => void;
   updateBookmark: (categoryId: string, bookmarkId: string, bookmark: Partial<Bookmark>) => void;
   deleteBookmark: (categoryId: string, bookmarkId: string) => void;
   reorderBookmarks: (categoryId: string, fromIndex: number, toIndex: number) => void;
+  setBookmarksOrder: (categoryId: string, newBookmarks: Bookmark[]) => void;
   addWidget: (widget: Omit<Bookmark, 'id'>) => void;
   updateWidget: (widgetId: string, widget: Partial<Bookmark>) => void;
   deleteWidget: (widgetId: string) => void;
@@ -308,6 +310,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  /** 分组批量排序——用于流畅拖动吸附重排 */
+  const setCategoriesOrder = useCallback((newCategories: Category[]) => {
+    setState((prev) => ({
+      ...prev,
+      categories: newCategories,
+      updatedAt: Date.now()
+    }));
+  }, []);
+
   const addBookmark = useCallback((categoryId: string, bookmark: Omit<Bookmark, 'id'>) => {
     setState((prev) => ({
       ...prev,
@@ -359,6 +370,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           const newBookmarks = [...c.bookmarks];
           const [moved] = newBookmarks.splice(fromIndex, 1);
           newBookmarks.splice(toIndex, 0, moved);
+          return { ...c, bookmarks: newBookmarks };
+        }
+        return c;
+      }),
+      updatedAt: Date.now()
+    }));
+  }, []);
+
+  /** 书签批量排序——用于流畅拖动吸附重排 */
+  const setBookmarksOrder = useCallback((categoryId: string, newBookmarks: Bookmark[]) => {
+    setState((prev) => ({
+      ...prev,
+      categories: prev.categories.map((c) => {
+        if (c.id === categoryId) {
           return { ...c, bookmarks: newBookmarks };
         }
         return c;
@@ -547,10 +572,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         updateCategory,
         deleteCategory,
         reorderCategories,
+        setCategoriesOrder,
         addBookmark,
         updateBookmark,
         deleteBookmark,
         reorderBookmarks,
+        setBookmarksOrder,
         addWidget,
         updateWidget,
         deleteWidget,

@@ -119,6 +119,7 @@ export const TRANSLATIONS = {
     emptyBookmarks: '暂无站点，点击上方「添加新站点」开始',
     emptyCategories: '还没有任何分类',
     emptyCategoriesDesc: '点击上方「添加分类」创建第一个分组',
+    dragToReorderTip: '按住或长按标签分组/站点卡片，可直接拖动吸附调整排序',
 
     // 壁纸设置
     wallpaperTitle: '壁纸与背景',
@@ -294,6 +295,7 @@ export const TRANSLATIONS = {
     emptyBookmarks: 'No sites yet. Click "Add New Site" to start',
     emptyCategories: 'No Categories Yet',
     emptyCategoriesDesc: 'Click "Add Category" to create your first group',
+    dragToReorderTip: 'Press & hold or drag tabs/site cards to reorder',
 
     // Wallpaper
     wallpaperTitle: 'Wallpaper & Background',

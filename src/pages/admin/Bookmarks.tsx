@@ -3,12 +3,354 @@
  * NOTE: 支持分组的 CRUD 和站点的 CRUD，包含分类和书签的模态框编辑
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useData, type Category, type Bookmark } from '../../context/DataContext.tsx';
 import * as Icons from 'lucide-react';
-import { Plus, Edit2, Trash2, FolderOpen, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe, AlarmClock, Search, CloudSun } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderOpen, LayoutGrid, LayoutList, Eye, EyeOff, Lock, Globe, GripVertical, HelpCircle } from 'lucide-react';
+import { Reorder, useDragControls } from 'motion/react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
+
+function CategoryTabItem({
+  category,
+  isActive,
+  onSelect,
+  onDragEnd,
+}: {
+  key?: string;
+  category: Category;
+  isActive: boolean;
+  onSelect: () => void;
+  onDragEnd: () => void;
+}) {
+  const dragControls = useDragControls();
+  const timerRef = useRef<any>(null);
+  const isDraggingRef = useRef(false);
+  const startPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    
+    startPosRef.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = false;
+
+    timerRef.current = setTimeout(() => {
+      isDraggingRef.current = true;
+      dragControls.start(e);
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(30);
+      }
+    }, 220);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!startPosRef.current || isDraggingRef.current) return;
+    const dx = Math.abs(e.clientX - startPosRef.current.x);
+    const dy = Math.abs(e.clientY - startPosRef.current.y);
+    if (dx > 8 || dy > 8) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (!isDraggingRef.current) {
+      onSelect();
+    }
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 50);
+  };
+
+  const handlePointerCancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    isDraggingRef.current = false;
+  };
+
+  return (
+    <Reorder.Item
+      value={category}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragEnd={onDragEnd}
+      className="relative select-none flex-shrink-0 touch-pan-x h-10 box-border cursor-pointer"
+      transition={{
+        type: 'spring',
+        damping: 30,
+        stiffness: 400
+      }}
+    >
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        className={`flex items-center gap-1.5 h-10 px-3.5 rounded-xl text-sm font-semibold border-2 transition-colors duration-150 group select-none box-border ${
+          isActive
+            ? 'border-[#ec5b13] bg-[#ec5b13]/10 text-[#ec5b13] shadow-sm'
+            : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/90 bg-white/70 shadow-xs'
+        }`}
+      >
+        <GripVertical
+          className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 opacity-60 group-hover:opacity-100 transition-opacity flex-shrink-0 cursor-grab active:cursor-grabbing"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            isDraggingRef.current = true;
+            dragControls.start(e);
+          }}
+        />
+        <span className="whitespace-nowrap leading-none flex items-center">{category.title}</span>
+        <span
+          className={`h-5 min-w-[20px] px-1.5 inline-flex items-center justify-center text-xs font-semibold leading-none rounded-full transition-colors ml-0.5 ${
+            isActive ? 'bg-[#ec5b13]/20 text-[#ec5b13]' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
+          }`}
+        >
+          {category.bookmarks.length}
+        </span>
+      </div>
+    </Reorder.Item>
+  );
+}
+
+function CategoryTabsReorderList({
+  categories,
+  activeCategory,
+  onSelectCategory,
+  onSaveOrder,
+}: {
+  categories: Category[];
+  activeCategory: string;
+  onSelectCategory: (id: string) => void;
+  onSaveOrder: (newCategories: Category[]) => void;
+}) {
+  const [items, setItems] = React.useState<Category[]>(categories);
+  const itemsRef = useRef<Category[]>(categories);
+  itemsRef.current = items;
+
+  React.useEffect(() => {
+    setItems(categories);
+  }, [categories]);
+
+  const handleReorder = (newItems: Category[]) => {
+    setItems(newItems);
+    itemsRef.current = newItems;
+  };
+
+  const handleDragEnd = () => {
+    onSaveOrder(itemsRef.current);
+  };
+
+  return (
+    <Reorder.Group
+      axis="x"
+      values={items}
+      onReorder={handleReorder}
+      className="flex items-center gap-1.5 min-w-max"
+    >
+      {items.map((category) => (
+        <CategoryTabItem
+          key={category.id}
+          category={category}
+          isActive={activeCategory === category.id}
+          onSelect={() => onSelectCategory(category.id)}
+          onDragEnd={handleDragEnd}
+        />
+      ))}
+    </Reorder.Group>
+  );
+}
+
+interface BookmarkRowItemProps {
+  key?: string;
+  bookmark: Bookmark;
+  renderIcon: (iconName: string, siteUrl?: string, size?: string) => React.ReactNode;
+  onEdit: (bookmark: Bookmark) => void;
+  onDelete: (bookmark: Bookmark) => void;
+  onDragEnd: () => void;
+}
+
+function BookmarkRowItem({ bookmark, renderIcon, onEdit, onDelete, onDragEnd }: BookmarkRowItemProps) {
+  const dragControls = useDragControls();
+  const timerRef = useRef<any>(null);
+  const isDraggingRef = useRef(false);
+  const startPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if ((e.target as HTMLElement).closest('button, a, input')) return;
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+
+    startPosRef.current = { x: e.clientX, y: e.clientY };
+    isDraggingRef.current = false;
+
+    timerRef.current = setTimeout(() => {
+      isDraggingRef.current = true;
+      dragControls.start(e);
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(30);
+      }
+    }, 220);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!startPosRef.current || isDraggingRef.current) return;
+    const dx = Math.abs(e.clientX - startPosRef.current.x);
+    const dy = Math.abs(e.clientY - startPosRef.current.y);
+    if (dx > 8 || dy > 8) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 50);
+  };
+
+  const handlePointerCancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    isDraggingRef.current = false;
+  };
+
+  return (
+    <Reorder.Item
+      value={bookmark}
+      dragListener={false}
+      dragControls={dragControls}
+      onDragEnd={onDragEnd}
+      className="relative select-none group touch-pan-y rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50/90 shadow-xs"
+      transition={{
+        type: 'spring',
+        damping: 30,
+        stiffness: 400
+      }}
+    >
+      <div
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        className="flex items-center justify-between p-3.5"
+      >
+        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+          <div
+            className="p-1 text-slate-300 group-hover:text-slate-500 cursor-grab active:cursor-grabbing hover:bg-slate-100 rounded-md transition-colors flex-shrink-0"
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              isDraggingRef.current = true;
+              dragControls.start(e);
+            }}
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
+
+          <div className="w-10 h-10 rounded-xl bg-slate-100/80 border border-slate-200/50 flex items-center justify-center overflow-hidden text-slate-500 flex-shrink-0">
+            {renderIcon(bookmark.icon, bookmark.url, 'w-6 h-6')}
+          </div>
+
+          <div className="min-w-0 flex-1 pr-2">
+            <div className="font-semibold text-slate-900 truncate text-sm sm:text-base">
+              {bookmark.title}
+            </div>
+            {bookmark.url && (
+              <div className="text-xs text-slate-400 truncate mt-0.5 max-w-md">
+                {bookmark.url}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={() => onEdit(bookmark)}
+            className="p-2 rounded-lg text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/5 transition-colors"
+            title="Edit"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete(bookmark)}
+            className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </Reorder.Item>
+  );
+}
+
+function BookmarksReorderList({
+  categoryId,
+  bookmarks,
+  onSaveOrder,
+  renderIcon,
+  onEdit,
+  onDelete,
+}: {
+  categoryId: string;
+  bookmarks: Bookmark[];
+  onSaveOrder: (categoryId: string, newBookmarks: Bookmark[]) => void;
+  renderIcon: (iconName: string, siteUrl?: string, size?: string) => React.ReactNode;
+  onEdit: (bookmark: Bookmark) => void;
+  onDelete: (bookmark: Bookmark) => void;
+}) {
+  const [items, setItems] = React.useState<Bookmark[]>(bookmarks);
+  const itemsRef = useRef<Bookmark[]>(bookmarks);
+  itemsRef.current = items;
+
+  React.useEffect(() => {
+    setItems(bookmarks);
+  }, [bookmarks]);
+
+  const handleReorder = (newItems: Bookmark[]) => {
+    setItems(newItems);
+    itemsRef.current = newItems;
+  };
+
+  const handleDragEnd = () => {
+    onSaveOrder(categoryId, itemsRef.current);
+  };
+
+  return (
+    <Reorder.Group
+      axis="y"
+      values={items}
+      onReorder={handleReorder}
+      className="flex flex-col gap-2"
+    >
+      {items.map((bookmark) => (
+        <BookmarkRowItem
+          key={bookmark.id}
+          bookmark={bookmark}
+          renderIcon={renderIcon}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onDragEnd={handleDragEnd}
+        />
+      ))}
+    </Reorder.Group>
+  );
+}
 
 export default function Bookmarks() {
   const {
@@ -16,15 +358,11 @@ export default function Bookmarks() {
     addCategory,
     updateCategory,
     deleteCategory,
-    reorderCategories,
+    setCategoriesOrder,
     addBookmark,
     updateBookmark,
     deleteBookmark,
-    reorderBookmarks,
-    addWidget,
-    updateWidget,
-    deleteWidget,
-    reorderWidgets,
+    setBookmarksOrder,
   } = useData();
   const t = TRANSLATIONS[state.settings.language || 'zh-CN'];
   const [activeCategory, setActiveCategory] = useState<string>(state.categories[0]?.id || '');
@@ -60,7 +398,6 @@ export default function Bookmarks() {
   });
 
   const currentCategory = state.categories.find((c) => c.id === activeCategory);
-  const currentCategoryIndex = state.categories.findIndex((c) => c.id === activeCategory);
 
   // 分类处理器
   const handleSaveCategory = () => {
@@ -132,13 +469,6 @@ export default function Bookmarks() {
     setIsBookmarkModalOpen(true);
   };
 
-  /** 移动书签位置 */
-  const handleMoveBookmark = (index: number, direction: 'up' | 'down') => {
-    if (!activeCategory) return;
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    reorderBookmarks(activeCategory, index, targetIndex);
-  };
-
   /** 获取 Favicon 链接 */
   const getFaviconUrl = (url: string) => {
     try {
@@ -183,40 +513,46 @@ export default function Bookmarks() {
       {/* 页面标题 */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-3xl font-extrabold tracking-tight">{t.bookmarksTitle}</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-3xl font-extrabold tracking-tight">{t.bookmarksTitle}</h2>
+            <div className="relative group flex items-center">
+              <div
+                className="p-1 rounded-full text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/10 transition-colors cursor-help"
+                title={t.dragToReorderTip}
+              >
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              {/* Tooltip 气泡 */}
+              <div className="absolute left-0 top-full mt-1.5 hidden group-hover:flex items-center px-3 py-1.5 bg-slate-900/90 text-white text-xs font-medium rounded-xl whitespace-nowrap shadow-xl backdrop-blur-sm z-50 pointer-events-none transition-all">
+                {t.dragToReorderTip}
+              </div>
+            </div>
+          </div>
           <p className="text-slate-500">{t.bookmarksDesc}</p>
         </div>
       </div>
 
-      {/* 分类标签页 */}
+      {/* 分类标签页（长按/拖拽吸附排序） */}
       {state.categories.length > 0 && (
-        <div className="border-b border-slate-200 overflow-x-auto">
-          <div className="flex gap-1">
-            {state.categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`py-3 px-4 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${activeCategory === category.id
-                  ? 'border-[#ec5b13] text-[#ec5b13]'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-                  }`}
-              >
-                {category.title}
-                <span className="text-xs ml-1 text-slate-400">({category.bookmarks.length})</span>
-              </button>
-            ))}
-            <button
-              onClick={() => {
-                setEditingCategory(null);
-                setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
-                setIsCategoryModalOpen(true);
-              }}
-              className="py-3 px-4 text-sm font-semibold text-slate-500 hover:text-[#ec5b13] flex items-center gap-1 transition-colors whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" />
-              {t.addCategory}
-            </button>
-          </div>
+        <div className="flex items-center gap-2 overflow-x-auto pt-3 pb-3 px-1.5 -my-2 scrollbar-none">
+          <CategoryTabsReorderList
+            categories={state.categories}
+            activeCategory={activeCategory}
+            onSelectCategory={setActiveCategory}
+            onSaveOrder={setCategoriesOrder}
+          />
+
+          <button
+            onClick={() => {
+              setEditingCategory(null);
+              setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
+              setIsCategoryModalOpen(true);
+            }}
+            className="h-10 box-border px-3.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-[#ec5b13] hover:bg-[#ec5b13]/5 border border-dashed border-slate-300 hover:border-[#ec5b13] inline-flex items-center gap-1.5 transition-all whitespace-nowrap flex-shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            {t.addCategory}
+          </button>
         </div>
       )}
 
@@ -249,25 +585,6 @@ export default function Bookmarks() {
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
-                {/* 分类排序按钮 */}
-                {currentCategoryIndex > 0 && (
-                  <button
-                    onClick={() => reorderCategories(currentCategoryIndex, currentCategoryIndex - 1)}
-                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
-                    title="Left"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-                )}
-                {currentCategoryIndex < state.categories.length - 1 && (
-                  <button
-                    onClick={() => reorderCategories(currentCategoryIndex, currentCategoryIndex + 1)}
-                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
-                    title="Right"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                )}
               </div>
             </h3>
             <button
@@ -284,85 +601,34 @@ export default function Bookmarks() {
             </button>
           </div>
 
-          {/* 书签表格 */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                  <th className="px-4 py-3 font-semibold w-8"></th>
-                  <th className="px-4 py-3 font-semibold w-14">{t.tableIcon}</th>
-                  <th className="px-4 py-3 font-semibold">{t.tableName}</th>
-                  <th className="px-4 py-3 font-semibold text-right">{t.tableActions}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {currentCategory.bookmarks.map((bookmark, index) => (
-                  <tr key={bookmark.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {index > 0 && (
-                          <button
-                            onClick={() => handleMoveBookmark(index, 'up')}
-                            className="p-0.5 text-slate-400 hover:text-slate-600"
-                          >
-                            <ChevronUp className="w-3 h-3" />
-                          </button>
-                        )}
-                        {index < currentCategory.bookmarks.length - 1 && (
-                          <button
-                            onClick={() => handleMoveBookmark(index, 'down')}
-                            className="p-0.5 text-slate-400 hover:text-slate-600"
-                          >
-                            <ChevronDown className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden text-slate-500">
-                        {renderItemIcon(bookmark.icon, bookmark.url, 'w-6 h-6')}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 font-medium text-slate-900">{bookmark.title}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => handleEditBookmark(bookmark)}
-                          className="p-2 rounded-md text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/5 transition-all"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setConfirmModal({
-                              isOpen: true,
-                              title: t.deleteConfirmBookmark.split('?')[0],
-                              message: t.deleteConfirmBookmark,
-                              type: 'danger',
-                              onConfirm: () => deleteBookmark(currentCategory.id, bookmark.id)
-                            });
-                          }}
-                          className="p-2 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {currentCategory.bookmarks.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-slate-400">
-                      <div className="flex flex-col items-center gap-2">
-                        <FolderOpen className="w-10 h-10 text-slate-300" />
-                        <p>{t.emptyBookmarks}</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* 书签拖拽排序列表 */}
+          {currentCategory.bookmarks.length > 0 ? (
+            <div className="p-2 sm:p-3">
+              <BookmarksReorderList
+                categoryId={currentCategory.id}
+                bookmarks={currentCategory.bookmarks}
+                onSaveOrder={setBookmarksOrder}
+                renderIcon={renderItemIcon}
+                onEdit={handleEditBookmark}
+                onDelete={(b) => {
+                  setConfirmModal({
+                    isOpen: true,
+                    title: t.deleteConfirmBookmark.split('?')[0],
+                    message: t.deleteConfirmBookmark,
+                    type: 'danger',
+                    onConfirm: () => deleteBookmark(currentCategory.id, b.id)
+                  });
+                }}
+              />
+            </div>
+          ) : (
+            <div className="px-6 py-16 text-center text-slate-400">
+              <div className="flex flex-col items-center gap-2">
+                <FolderOpen className="w-10 h-10 text-slate-300" />
+                <p>{t.emptyBookmarks}</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
