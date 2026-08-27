@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { Settings, Tags, RefreshCw, Home, Menu, X, Image as ImageIcon, MessageCircle } from 'lucide-react';
+import { Settings, Tags, RefreshCw, Home, Menu, X, Image as ImageIcon, MessageCircle, BookOpen, ExternalLink, Github } from 'lucide-react';
 import { useData } from '../../context/DataContext.tsx';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 
@@ -81,11 +81,25 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        {/* 返回首页 */}
-        <div className="p-4 border-t border-slate-100">
+        {/* 侧边栏底部操作区 */}
+        <div className="p-4 border-t border-slate-100 space-y-1">
+          <a
+            href="https://navdocs.072199.xyz/"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-500 hover:bg-[#ec5b13]/5 hover:text-[#ec5b13] transition-all duration-200 font-medium group"
+            title={t.docsTooltip}
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-5 h-5 text-[#ec5b13]" />
+              <span className="text-sm font-semibold">{t.docSite}</span>
+            </div>
+            <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
+          </a>
+
           <Link
             to="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all duration-200 font-medium"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all duration-200 font-medium"
           >
             <Home className="w-5 h-5" />
             <span className="text-sm">{t.backToHome}</span>
@@ -96,19 +110,32 @@ export default function AdminLayout() {
       {/* 主内容区域 */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* 移动端顶栏 */}
-        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 flex items-center gap-3 px-4 py-3">
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#ec5b13] flex items-center justify-center overflow-hidden">
-              <img src="/favicon.svg" alt="logo" className="w-5 h-5 filter brightness-0 invert" />
+        <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200 flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#ec5b13] flex items-center justify-center overflow-hidden">
+                <img src="/favicon.svg" alt="logo" className="w-5 h-5 filter brightness-0 invert" />
+              </div>
+              <span className="text-sm font-bold">{state.settings.siteName}</span>
             </div>
-            <span className="text-sm font-bold">{state.settings.siteName}</span>
           </div>
+
+          <a
+            href="https://navdocs.072199.xyz/"
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#ec5b13] bg-[#ec5b13]/10 hover:bg-[#ec5b13]/20 transition-colors"
+            title={t.docsTooltip}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>{t.docSite}</span>
+          </a>
         </div>
 
         <main className="flex-1 min-w-0 overflow-auto flex flex-col">
@@ -118,8 +145,29 @@ export default function AdminLayout() {
           
           {/* 全局后台页脚 */}
           <footer className="w-full max-w-4xl mx-auto px-6 sm:px-8 py-10 mt-auto">
-            <div className="border-t border-slate-200/60 pt-8 text-center">
-              <p className="text-slate-300 text-[10px] sm:text-xs font-bold tracking-[0.2em] uppercase">
+            <div className="border-t border-slate-200/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
+                <a
+                  href="https://navdocs.072199.xyz/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-[#ec5b13] transition-colors inline-flex items-center gap-1"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>{t.docSite}</span>
+                </a>
+                <span className="text-slate-200">|</span>
+                <a
+                  href="https://github.com/YUME-0721/YuNest"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-slate-700 transition-colors inline-flex items-center gap-1"
+                >
+                  <Github className="w-3.5 h-3.5" />
+                  <span>GitHub</span>
+                </a>
+              </div>
+              <p className="text-slate-400 text-[10px] sm:text-xs font-semibold tracking-wider uppercase">
                 {t.builtBy}
               </p>
             </div>

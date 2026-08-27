@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData, PRESET_SEARCH_ENGINES } from '../context/DataContext.tsx';
-import { Search, Settings as SettingsIcon, ExternalLink, Lock, CheckCircle2, AlertCircle, X, Globe } from 'lucide-react';
+import { Search, Settings as SettingsIcon, ExternalLink, Lock, CheckCircle2, AlertCircle, X, Globe, BookOpen, Github } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { TRANSLATIONS } from '../i18n/translations.ts';
@@ -378,15 +378,24 @@ export default function Home() {
         )}
       </div>
 
-      {/* 左上角网站标题 - 仅在桌面端显示 */}
+      {/* 左上角网站标题 - 仅在桌面端显示（点击跳转项目文档网站） */}
       <div 
         className={`fixed top-6 left-8 z-50 transition-all duration-500 ease-in-out hidden sm:block ${
           isScrolled ? 'opacity-0 -translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
         }`}
       >
-        <h1 className="text-lg font-medium tracking-[0.15em] text-white/60 uppercase">
-          {settings.siteName}
-        </h1>
+        <a
+          href="https://navdocs.072199.xyz/"
+          target="_blank"
+          rel="noreferrer"
+          className="group flex items-center gap-2 no-underline cursor-pointer"
+          title={t.docsTooltip}
+        >
+          <h1 className="text-lg font-medium tracking-[0.15em] text-white/60 group-hover:text-white transition-colors duration-300 uppercase flex items-center gap-1.5">
+            {settings.siteName}
+            <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-60 transition-all duration-300 -translate-x-1 group-hover:translate-x-0" />
+          </h1>
+        </a>
       </div>
 
       {/* 右上角设置按钮 */}
@@ -409,11 +418,17 @@ export default function Home() {
         widgets && widgets.length > 0 ? 'pt-6 sm:pt-10' : 'pt-16 sm:pt-24'
       }`}>
 
-        {/* 移动端显示的标题 (如果没有 Widget 也许需要保留) */}
+        {/* 移动端显示的标题 (点击跳转项目文档) */}
         <header className="text-center mb-8 animate-fade-in sm:hidden" style={{ animationDelay: '0.1s' }}>
-          <h1 className="text-xs font-bold tracking-[0.4em] text-white/40 uppercase">
+          <a
+            href="https://navdocs.072199.xyz/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-bold tracking-[0.4em] text-white/40 hover:text-white/80 uppercase no-underline transition-colors"
+            title={t.docsTooltip}
+          >
             {settings.siteName}
-          </h1>
+          </a>
         </header>
 
         {/* 全局小组件区域 */}
@@ -528,10 +543,32 @@ export default function Home() {
         </div>
 
         {/* 页脚 */}
-        <footer className="mt-auto py-12 text-center animate-fade-in" style={{ animationDelay: '1.2s' }}>
-          <p className="text-white/20 text-[10px] sm:text-xs font-bold tracking-[0.3em] uppercase transition-colors duration-500 hover:text-white/50 cursor-default">
+        <footer className="mt-auto py-10 text-center animate-fade-in flex flex-col items-center gap-3" style={{ animationDelay: '1.2s' }}>
+          <p className="text-white/20 text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase transition-colors duration-500 hover:text-white/50 cursor-default">
             {t.builtBy}
           </p>
+          <div className="flex items-center justify-center gap-3 text-xs font-semibold text-white/50">
+            <a
+              href="https://navdocs.072199.xyz/"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass hover:bg-white/10 text-white/70 hover:text-white transition-all no-underline shadow-sm"
+              title={t.docsTooltip}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#ec5b13]" />
+              <span>{t.docSite}</span>
+            </a>
+            <a
+              href="https://github.com/YUME-0721/YuNest"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass hover:bg-white/10 text-white/70 hover:text-white transition-all no-underline shadow-sm"
+              title={t.githubRepo}
+            >
+              <Github className="w-3.5 h-3.5" />
+              <span>GitHub</span>
+            </a>
+          </div>
         </footer>
       </main>
 

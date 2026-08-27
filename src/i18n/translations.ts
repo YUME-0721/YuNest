@@ -174,6 +174,10 @@ export const TRANSLATIONS = {
     aboutProject: '关于项目',
     contactEmail: '联系邮箱',
     githubRepo: 'GitHub 仓库',
+    docSite: '官方文档',
+    viewDocs: '查看使用文档',
+    docsTooltip: '点击访问 YuNest 项目官方文档',
+    githubLabel: 'GitHub 源码',
     licenseLabel: '开源协议',
     nonCommercial: '自由软件：本项目遵循 GPL-3.0 开源协议，您可以自由地运行、学习、共享和修改。',
     attribution: '开源精神：修改后的作品必须以相同的协议开源，并保留原作者 YUME-0721 的署名。',
@@ -196,6 +200,10 @@ export const TRANSLATIONS = {
     lanUrlDesc: 'Intranet/Private Access',
     settingsIcon: 'Login',
     builtBy: 'Handcrafted with passion by YUME © 2026',
+    docSite: 'Docs',
+    viewDocs: 'View Documentation',
+    docsTooltip: 'Click to visit YuNest documentation',
+    githubLabel: 'GitHub Repo',
 
     // Admin Common
     backToHome: 'Back to Home',
