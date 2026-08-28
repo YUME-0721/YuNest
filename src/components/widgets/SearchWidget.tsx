@@ -168,7 +168,15 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
           title={`Switch Engine (Current: ${currentEngine.name})`}
         >
           {currentEngine.icon ? (
-            <img src={currentEngine.icon} className={`${size.startsWith('1x') ? 'w-3 h-3' : 'w-4 h-4'} object-contain`} alt="engine" />
+            <img 
+              src={currentEngine.icon} 
+              className={`${size.startsWith('1x') ? 'w-3 h-3' : 'w-4 h-4'} object-contain`} 
+              alt="engine"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }} 
+            />
           ) : (
             <Search className={`${size.startsWith('1x') ? 'w-3 h-3' : 'w-4 h-4'} text-white`} />
           )}

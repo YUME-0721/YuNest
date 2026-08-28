@@ -1,11 +1,6 @@
-/**
- * 备份与还原页面
- * NOTE: 支持 JSON 格式数据的导入/导出，含数据统计和文件格式验证
- */
-
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useData } from '../../context/DataContext.tsx';
-import { UploadCloud, Download, AlertTriangle, CheckCircle, FileJson, Database, Cloud, RefreshCw } from 'lucide-react';
+import { UploadCloud, Download, AlertTriangle, CheckCircle, FileJson, Database, Cloud, RefreshCw, HelpCircle, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
 
@@ -21,6 +16,63 @@ export default function Backup() {
   const [syncMessage, setSyncMessage] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+
+  // 云端连接状态测试：'idle' | 'checking' | 'connected' | 'disconnected'
+  const [connStatus, setConnStatus] = useState<'idle' | 'checking' | 'connected' | 'disconnected'>('idle');
+
+  // 测试云端同步连通性
+  const checkConnection = useCallback(async () => {
+    if (!state.settings.githubSync) {
+      setConnStatus('idle');
+      return;
+    }
+
+    setConnStatus('checking');
+    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
+
+    // 1. 测试边缘代理 /api/sync
+    try {
+      const res = await fetch('/api/sync', {
+        headers: { 'x-auth-password': authPassword },
+      });
+      if (res.ok) {
+        setConnStatus('connected');
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      // 如果明确是未配置变量或 404，转入测试客户端配置
+      if (data.code !== 'NOT_CONFIGURED' && res.status !== 404) {
+        setConnStatus('disconnected');
+        return;
+      }
+    } catch (e) {
+      // 代理不可达
+    }
+
+    // 2. 测试本地填写的 Token + 仓库直连
+    if (state.settings.githubToken && state.settings.githubRepo) {
+      try {
+        const ghRes = await fetch(`https://api.github.com/repos/${state.settings.githubRepo}`, {
+          headers: {
+            Authorization: `Bearer ${state.settings.githubToken}`,
+            Accept: 'application/vnd.github+json',
+          },
+        });
+        if (ghRes.ok) {
+          setConnStatus('connected');
+          return;
+        }
+      } catch (e) {
+        // 直连失败
+      }
+    }
+
+    setConnStatus('disconnected');
+  }, [state.settings.githubSync, state.settings.githubToken, state.settings.githubRepo]);
+
+  useEffect(() => {
+    checkConnection();
+  }, [checkConnection]);
 
   // 数据统计
   const totalBookmarks = state.categories.reduce((acc, cat) => acc + cat.bookmarks.length, 0);
@@ -183,6 +235,55 @@ export default function Backup() {
             <div className="flex items-center gap-2">
               <Cloud className={`w-6 h-6 ${state.settings.githubSync ? 'text-[#ec5b13]' : 'text-slate-300'}`} />
               <h3 className="text-xl font-bold">{t.cloudSync}</h3>
+
+              {/* 连通状态指示器 (绿/红 Wifi 图标) */}
+              {state.settings.githubSync && (
+                <div className="relative group flex items-center">
+                  <div
+                    onClick={checkConnection}
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all ${
+                      connStatus === 'connected'
+                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/80 hover:bg-emerald-100/80'
+                        : connStatus === 'disconnected'
+                        ? 'bg-rose-50 text-rose-600 border border-rose-200/80 hover:bg-rose-100/80'
+                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                    }`}
+                    title={
+                      connStatus === 'connected'
+                        ? t.syncConnectedTip
+                        : connStatus === 'disconnected'
+                        ? t.syncDisconnectedTip
+                        : t.syncCheckingTip
+                    }
+                  >
+                    {connStatus === 'connected' && <Wifi className="w-3.5 h-3.5" />}
+                    {connStatus === 'disconnected' && <WifiOff className="w-3.5 h-3.5" />}
+                    {connStatus === 'checking' && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  </div>
+                  {/* Tooltip 气泡 */}
+                  <div className="absolute left-0 top-full mt-1.5 hidden group-hover:flex items-center px-3 py-1.5 bg-slate-900/95 text-white text-xs font-medium rounded-xl whitespace-nowrap shadow-2xl backdrop-blur-md z-50 pointer-events-none transition-all leading-relaxed border border-white/10">
+                    {connStatus === 'connected'
+                      ? t.syncConnectedTip
+                      : connStatus === 'disconnected'
+                      ? t.syncDisconnectedTip
+                      : t.syncCheckingTip}
+                  </div>
+                </div>
+              )}
+
+              {/* 帮助问号 */}
+              <div className="relative group flex items-center">
+                <div
+                  className="p-1 rounded-full text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/10 transition-colors cursor-help"
+                  title={t.proxySyncDesc}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                {/* Tooltip 气泡 */}
+                <div className="absolute left-0 top-full mt-1.5 hidden group-hover:flex items-center px-3 py-2 bg-slate-900/95 text-white text-xs font-medium rounded-xl w-72 sm:w-80 shadow-2xl backdrop-blur-md z-50 pointer-events-none transition-all leading-relaxed border border-white/10">
+                  {t.proxySyncDesc}
+                </div>
+              </div>
             </div>
             <button
               onClick={() => updateSettings({ githubSync: !state.settings.githubSync })}
@@ -200,25 +301,10 @@ export default function Backup() {
 
           <div className={`transition-all duration-300 ${state.settings.githubSync ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale-[0.5]'}`}>
 
-          {/* 边缘代理提示 */}
-          <div className="p-4 bg-orange-50/60 border border-orange-100 rounded-xl mb-6 flex items-start gap-3">
-            <div className="p-1 bg-[#ec5b13]/10 text-[#ec5b13] rounded-lg mt-0.5 shrink-0">
-              <Cloud className="w-4 h-4" />
-            </div>
-            <div className="text-xs text-slate-600 space-y-1 leading-relaxed">
-              <p className="font-bold text-slate-800 flex items-center gap-1.5">
-                {t.proxySyncBadge}
-              </p>
-              <p className="text-slate-500">
-                {t.proxySyncDesc}
-              </p>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <label className="block text-sm font-semibold mb-2">
-                {t.syncToken} <span className="text-xs font-normal text-slate-400">({t.manualOverrideTip})</span>
+                {t.syncToken}
               </label>
               <input
                 type="password"
@@ -230,7 +316,7 @@ export default function Backup() {
             </div>
             <div>
               <label className="block text-sm font-semibold mb-2">
-                {t.syncRepo} <span className="text-xs font-normal text-slate-400">({t.manualOverrideTip})</span>
+                {t.syncRepo}
               </label>
               <input
                 type="text"
@@ -244,12 +330,23 @@ export default function Backup() {
 
           {/* 自动同步开关 */}
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl mb-6">
-            <div className="space-y-0.5">
-              <div className="text-sm font-bold flex items-center gap-2">
-                <RefreshCw className={`w-4 h-4 ${state.settings.autoSync ? 'animate-spin-slow text-[#ec5b13]' : 'text-slate-400'}`} />
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-bold flex items-center gap-2 text-slate-800">
+                <RefreshCw className={`w-4 h-4 ${state.settings.autoSync ? 'text-[#ec5b13]' : 'text-slate-400'}`} />
                 {t.autoSyncLabel}
               </div>
-              <p className="text-[11px] text-slate-400">{t.autoSyncDesc}</p>
+              <div className="relative group flex items-center">
+                <div
+                  className="p-1 rounded-full text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/10 transition-colors cursor-help"
+                  title={t.autoSyncDesc}
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                </div>
+                {/* Tooltip 气泡 */}
+                <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover:flex items-center px-3 py-1.5 bg-slate-900/95 text-white text-xs font-medium rounded-xl w-64 sm:w-72 shadow-2xl backdrop-blur-md z-50 pointer-events-none transition-all leading-relaxed border border-white/10">
+                  {t.autoSyncDesc}
+                </div>
+              </div>
             </div>
             <button
               onClick={() => updateSettings({ autoSync: !state.settings.autoSync })}

@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useData, PRESET_SEARCH_ENGINES, DEFAULT_SETTINGS, type Bookmark } from '../../context/DataContext.tsx';
-import { Settings as SettingsIcon, Image as ImageIcon, Search, CheckCircle, Upload, RefreshCw, Clock, Globe, LayoutGrid, AlarmClock, CloudSun, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Settings as SettingsIcon, Image as ImageIcon, Search, CheckCircle, Upload, RefreshCw, Clock, Globe, LayoutGrid, AlarmClock, CloudSun, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Eye, HelpCircle } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
 
@@ -215,9 +215,20 @@ export default function Settings() {
 
             {/* 认证跳转开关 */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-              <div className="space-y-1">
+              <div className="flex items-center gap-2">
                 <label className="text-sm font-semibold text-slate-800">{t.authRedirectLabel}</label>
-                <p className="text-xs text-slate-500">{t.authRedirectDesc}</p>
+                <div className="relative group flex items-center">
+                  <div
+                    className="p-1 rounded-full text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/10 transition-colors cursor-help"
+                    title={t.authRedirectDesc}
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                  </div>
+                  {/* Tooltip 气泡 */}
+                  <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover:flex items-center px-3 py-1.5 bg-slate-900/95 text-white text-xs font-medium rounded-xl w-64 sm:w-72 shadow-2xl backdrop-blur-md z-50 pointer-events-none transition-all leading-relaxed border border-white/10">
+                    {t.authRedirectDesc}
+                  </div>
+                </div>
               </div>
               <button
                 type="button"

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Github, Mail, User, ExternalLink, Shield, Info, Heart, Copy, Check, FileText, BookOpen } from 'lucide-react';
+import { Github, Mail, User, ExternalLink, Shield, Info, Heart, Copy, Check, FileText } from 'lucide-react';
 import { useData } from '../../context/DataContext.tsx';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import pkg from '../../../package.json';
@@ -122,20 +122,6 @@ export default function Feedback() {
 
               <div className="flex flex-col gap-3 pt-2">
                 <a
-                  href="https://navdocs.072199.xyz/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#ec5b13] text-white hover:bg-[#ec5b13]/90 transition-all group/docs shadow-lg shadow-[#ec5b13]/25 active:scale-95"
-                >
-                  <BookOpen className="w-5 h-5" />
-                  <div className="text-left flex-1">
-                    <div className="text-sm font-bold leading-tight">{t.viewDocs}</div>
-                    <div className="text-[11px] text-white/80">navdocs.072199.xyz</div>
-                  </div>
-                  <ExternalLink className="w-4 h-4 opacity-70 group-hover/docs:opacity-100 transition-opacity" />
-                </a>
-
-                <a
                   href={PROJECT_INFO.repo}
                   target="_blank"
                   rel="noreferrer"
@@ -143,7 +129,7 @@ export default function Feedback() {
                 >
                   <Github className="w-5 h-5" />
                   <span className="text-sm font-bold flex-1">{PROJECT_INFO.repo.replace('https://github.com/', '')}</span>
-                  <ExternalLink className="w-4 h-4 opacity-30 group-hover/repo:opacity-100 transition-opacity" />
+                  <ExternalLink className="w-4 h-4 opacity-70 group-hover/repo:opacity-100 transition-opacity" />
                 </a>
               </div>
             </div>

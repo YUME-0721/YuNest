@@ -283,8 +283,8 @@ export default function Home() {
    * 4. 兜底使用 Globe 图标
    */
   const renderIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
-    // 1. URL 图片 (支持 http/https 开头)
-    if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://'))) {
+    // 1. URL 图片 (支持 http/https 开头或本地绝对路径 / 开头或 data: 格式)
+    if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('/') || iconName.startsWith('data:'))) {
       return (
         <img
           src={iconName}
@@ -544,31 +544,33 @@ export default function Home() {
         </div>
 
         {/* 页脚 */}
-        <footer className="mt-auto py-10 text-center animate-fade-in flex flex-col items-center gap-3" style={{ animationDelay: '1.2s' }}>
-          <p className="text-white/20 text-[10px] sm:text-xs font-bold tracking-[0.25em] uppercase transition-colors duration-500 hover:text-white/50 cursor-default">
-            {t.builtBy}
-          </p>
-          <div className="flex items-center justify-center gap-3 text-xs font-semibold text-white/50">
-            <a
-              href="https://navdocs.072199.xyz/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass hover:bg-white/10 text-white/70 hover:text-white transition-all no-underline shadow-sm"
-              title={t.docsTooltip}
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[#ec5b13]" />
-              <span>{t.docSite}</span>
-            </a>
-            <a
-              href="https://github.com/YUME-0721/YuNest"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass hover:bg-white/10 text-white/70 hover:text-white transition-all no-underline shadow-sm"
-              title={t.githubRepo}
-            >
-              <Github className="w-3.5 h-3.5" />
-              <span>GitHub</span>
-            </a>
+        <footer className="mt-auto pt-8 pb-10 text-center animate-fade-in flex flex-col items-center gap-3.5" style={{ animationDelay: '1.2s' }}>
+          <div className="inline-flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-white/55 font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+            <span className="tracking-wider uppercase select-none text-white/50">{t.builtBy}</span>
+            <span className="text-white/30 select-none">•</span>
+            <div className="flex items-center gap-3">
+              <a
+                href="https://navdocs.072199.xyz/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors duration-200"
+                title={t.docsTooltip}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#ec5b13]" />
+                <span>{t.docSite}</span>
+              </a>
+              <span className="text-white/30 select-none">•</span>
+              <a
+                href="https://github.com/YUME-0721/YuNest"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-white/70 hover:text-white transition-colors duration-200"
+                title={t.githubRepo}
+              >
+                <Github className="w-3.5 h-3.5" />
+                <span>GitHub</span>
+              </a>
+            </div>
           </div>
         </footer>
       </main>

@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { useData, DEFAULT_SETTINGS } from '../../context/DataContext.tsx';
-import { Image as ImageIcon, CheckCircle, Upload, RefreshCw } from 'lucide-react';
+import { Image as ImageIcon, CheckCircle, Upload, RefreshCw, HelpCircle } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
 
@@ -217,9 +217,20 @@ export default function Wallpaper() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
             <div className="flex flex-col gap-4 p-4 rounded-xl border border-slate-50">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[13px] font-bold">{t.glassEffectLabel}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">{t.glassEffectDesc}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[13px] font-bold text-slate-800">{t.glassEffectLabel}</p>
+                  <div className="relative group flex items-center">
+                    <div
+                      className="p-1 rounded-full text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/10 transition-colors cursor-help"
+                      title={t.glassEffectDesc}
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </div>
+                    {/* Tooltip 气泡 */}
+                    <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover:flex items-center px-3 py-1.5 bg-slate-900/95 text-white text-xs font-medium rounded-xl w-60 shadow-2xl backdrop-blur-md z-50 pointer-events-none transition-all leading-relaxed border border-white/10">
+                      {t.glassEffectDesc}
+                    </div>
+                  </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -252,9 +263,20 @@ export default function Wallpaper() {
 
             <div className="flex flex-col gap-4 p-4 rounded-xl border border-slate-50">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[13px] font-bold">{t.darkMaskLabel}</p>
-                  <p className="text-[10px] text-slate-400 mt-1">{t.darkMaskDesc}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[13px] font-bold text-slate-800">{t.darkMaskLabel}</p>
+                  <div className="relative group flex items-center">
+                    <div
+                      className="p-1 rounded-full text-slate-400 hover:text-[#ec5b13] hover:bg-[#ec5b13]/10 transition-colors cursor-help"
+                      title={t.darkMaskDesc}
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                    </div>
+                    {/* Tooltip 气泡 */}
+                    <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover:flex items-center px-3 py-1.5 bg-slate-900/95 text-white text-xs font-medium rounded-xl w-60 shadow-2xl backdrop-blur-md z-50 pointer-events-none transition-all leading-relaxed border border-white/10">
+                      {t.darkMaskDesc}
+                    </div>
+                  </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
