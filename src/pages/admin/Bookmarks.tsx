@@ -482,14 +482,24 @@ export default function Bookmarks() {
   /** 渲染预览图标 */
   const renderItemIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
     // 1. URL 图片
-    if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://'))) {
+    if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('/') || iconName.startsWith('data:'))) {
       return (
         <img
           src={iconName}
           className={`${size} object-contain`}
           alt="icon"
           onError={(e) => {
-            if (siteUrl) (e.target as HTMLImageElement).src = getFaviconUrl(siteUrl);
+            const target = e.target as HTMLImageElement;
+            const retried = target.getAttribute('data-retried');
+            if (!retried && siteUrl) {
+              const fav = getFaviconUrl(siteUrl);
+              if (fav && fav !== target.src) {
+                target.setAttribute('data-retried', 'true');
+                target.src = fav;
+                return;
+              }
+            }
+            target.style.display = 'none';
           }}
         />
       );
@@ -501,7 +511,16 @@ export default function Bookmarks() {
 
     // 3. 自动 Favicon
     if (siteUrl) {
-      return <img src={getFaviconUrl(siteUrl)} className={`${size} object-contain`} alt="favicon" />;
+      return (
+        <img 
+          src={getFaviconUrl(siteUrl)} 
+          className={`${size} object-contain`} 
+          alt="favicon" 
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
+      );
     }
 
     // 4. 默认图标

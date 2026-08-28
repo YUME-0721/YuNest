@@ -292,13 +292,19 @@ export default function Home() {
           className={`${size} object-contain`}
           loading="lazy"
           onError={(e) => {
-            // 加载失败时尝试 favicon (如果有 siteUrl)
-            if (siteUrl) {
-              (e.target as HTMLImageElement).src = getFaviconUrl(siteUrl);
-            } else {
-              // 分类图标加载失败，显示兜底图标
-              (e.target as HTMLImageElement).style.display = 'none';
+            const target = e.target as HTMLImageElement;
+            const retried = target.getAttribute('data-retried');
+            if (!retried && siteUrl) {
+              const fav = getFaviconUrl(siteUrl);
+              // 如果备选 favicon 与当前失败的 src 一样，避免死循环
+              if (fav && fav !== target.src) {
+                target.setAttribute('data-retried', 'true');
+                target.src = fav;
+                return;
+              }
             }
+            // 失败达到上限或无备用源，彻底隐藏失败的 img 元素，显示默认背景
+            target.style.display = 'none';
           }}
         />
       );
@@ -321,7 +327,7 @@ export default function Home() {
             className={`${size} object-contain rounded-sm`}
             loading="lazy"
             onError={(e) => {
-              // 最终兜底
+              // 失败后立即停止请求并隐藏
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
             }}
@@ -511,7 +517,7 @@ export default function Home() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 px-1">
                   {category.bookmarks.map((bookmark) => (
                     <a
                       key={bookmark.id}
@@ -519,22 +525,22 @@ export default function Home() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onContextMenu={(e) => handleContextMenu(e, bookmark)}
-                      className="flex items-center p-4 rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group"
+                      className="flex items-center p-3 sm:p-4 rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group min-w-0"
                     >
-                      <div className="w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center mr-4 group-hover:bg-white/10 transition-colors duration-300 shrink-0">
-                        {renderIcon(bookmark.icon, bookmark.url)}
+                      <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/5 flex items-center justify-center mr-2.5 sm:mr-4 group-hover:bg-white/10 transition-colors duration-300 shrink-0">
+                        {renderIcon(bookmark.icon, bookmark.url, 'w-5 h-5 sm:w-6 sm:h-6')}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white group-hover:text-white transition-colors duration-300 truncate">
+                        <p className="text-xs sm:text-sm font-bold text-white group-hover:text-white transition-colors duration-300 truncate">
                           {bookmark.title}
                         </p>
                         {bookmark.description && (
-                          <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5 truncate">
+                          <p className="text-[9px] sm:text-[10px] text-white/50 uppercase tracking-wider mt-0.5 truncate">
                             {bookmark.description}
                           </p>
                         )}
                       </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-white/0 group-hover:text-white/30 transition-all duration-300 shrink-0 ml-2" />
+                      <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white/0 group-hover:text-white/30 transition-all duration-300 shrink-0 ml-1 sm:ml-2 hidden sm:block" />
                     </a>
                   ))}
                 </div>
