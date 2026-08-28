@@ -87,7 +87,7 @@ Suitable for users who want to customize the code further or run it in a private
    ```
 4. **Environment Config**:
    - Copy `.env.example` to `.env`.
-   - **`ADMIN_PASSWORD`**: Set your admin panel password (default `123456`).
+   - **`ADMIN_PASSWORD`**: Set your admin panel password (default `admin1234`).
    - **`GITHUB_TOKEN` / `GITHUB_REPO`**: Enter the credentials prepared above (the local dev server will automatically mount `/api/sync` proxy).
 5. **Start Dev Server**:
    ```bash
@@ -109,22 +109,22 @@ Suitable for users who want to customize the code further or run it in a private
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
 4. **Server-Side Secret Environment Variables (Crucial - Anti-Leak)**:
-   - In project settings **Environment Variables**, add the following (check **Encrypt / Secret**):
+   - In project settings **Environment Variables**, only add the following 3 standard variables (check **Encrypt / Secret**):
+     - **`ADMIN_PASSWORD`**: Admin panel password (default `admin1234`).
      - **`GITHUB_TOKEN`**: Your GitHub Token (encrypted on the server, invisible to frontend).
      - **`GITHUB_REPO`**: Your sync repo name (e.g. `YUME-0721/YuNest`).
-     - **`ADMIN_PASSWORD`**: Admin panel password.
 5. **🚀 Cloudflare Optimization (Recommended)**:
    - Go to **Settings -> Build & deployment -> Build watch paths**.
    - In **Excluded paths**, add `data/*` and save. This prevents data sync from triggering redundant build tasks.
 
 #### 2. Vercel Deployment
 1. Import your forked GitHub repository.
-2. In **Project Settings -> Environment Variables**, add `GITHUB_TOKEN` (Sensitive), `GITHUB_REPO`, and `ADMIN_PASSWORD`.
+2. In **Project Settings -> Environment Variables**, add `ADMIN_PASSWORD`, `GITHUB_TOKEN` (Sensitive), and `GITHUB_REPO`.
 3. Click **Deploy**. Vercel will automatically recognize `api/sync.ts` and deploy it as a global Edge Function.
 
 #### 3. Tencent Cloud EdgeOne Pages
 1. Import repository and set output directory to `dist`.
-2. Add `GITHUB_TOKEN` (Encrypted), `GITHUB_REPO`, and `ADMIN_PASSWORD` in Environment Variables.
+2. Add `ADMIN_PASSWORD`, `GITHUB_TOKEN` (Encrypted), and `GITHUB_REPO` in Environment Variables.
 
 ---
 

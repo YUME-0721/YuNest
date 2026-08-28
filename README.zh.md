@@ -87,7 +87,7 @@ YuNest 提供了极简的部署流程，您可以根据需求选择在本地运�
    ```
 4. **配置环境变量**:
    - 复制根目录下的 `.env.example` 并重命名为 `.env`。
-   - **`ADMIN_PASSWORD`**: 设置您的管理认证密码（默认 `123456`）。
+   - **`ADMIN_PASSWORD`**: 设置您的管理认证密码（默认 `admin1234`）。
    - **`GITHUB_TOKEN` / `GITHUB_REPO`**: 填入上方准备好的 GitHub 凭证（本地开发服务器会自动挂载 `/api/sync` 模拟边缘代理）。
 5. **启动开发服务**:
    ```bash
@@ -109,22 +109,22 @@ YuNest 提供了极简的部署流程，您可以根据需求选择在本地运�
    - **构建命令 (Build Command)**: `npm run build`
    - **输出目录 (Output Directory)**: `dist`
 4. **设置服务端机密环境变量 (关键 - 彻底防泄露)**:
-   - 在项目设置的 **Environment Variables** 中，添加以下变量（勾选 **Encrypt / Secret** 加密）：
-     - **`GITHUB_TOKEN`**: 您的 GitHub 令牌（服务端加密，前端不可见）。
-     - **`GITHUB_REPO`**: 您的同步仓库名（如 `YUME-0721/YuNest`）。
-     - **`ADMIN_PASSWORD`**: 管理后台认证密码。
+   - 在项目设置的 **Environment Variables** 中，仅需添加以下 3 个标准机密变量（勾选 **Encrypt / Secret** 加密）：
+     - **`ADMIN_PASSWORD`**: 管理后台认证密码（未设置时默认为 `admin1234`）。
+     - **`GITHUB_TOKEN`**: 您的 GitHub 令牌（服务端机密存储，前端不可见）。
+     - **`GITHUB_REPO`**: 您的同步仓库名（格式如 `用户名/仓库名`，例如 `YUME-0721/YuNest`）。
 5. **🚀 针对 Cloudflare 的深度优化 (推荐)**:
    - 进入项目：**设置 -> 构建与部署 -> 关键路径 -> 构建监视路径 (Build watch paths)**。
    - 在 **排除路径 (Excluded paths)** 中填入 `data/*` 并保存。这样更新书签时不会触发重复无意义构建。
 
 #### 2. Vercel 部署
 1. 导入 Fork 的 GitHub 仓库。
-2. 在 **Project Settings -> Environment Variables** 中添加 `GITHUB_TOKEN` (Sensitive)、`GITHUB_REPO` 和 `ADMIN_PASSWORD`。
+2. 在 **Project Settings -> Environment Variables** 中添加 `ADMIN_PASSWORD`、`GITHUB_TOKEN` (Sensitive) 与 `GITHUB_REPO`。
 3. 点击 **Deploy**，系统会自动识别 `api/sync.ts` 并部署为全球边缘函数。
 
 #### 3. 腾讯云 EdgeOne Pages 部署
 1. 导入仓库并在构建配置中选择输出目录为 `dist`。
-2. 在环境变量中添加 `GITHUB_TOKEN`、`GITHUB_REPO` 和 `ADMIN_PASSWORD` 即可。
+2. 在环境变量中添加 `ADMIN_PASSWORD`、`GITHUB_TOKEN` (Encrypted) 和 `GITHUB_REPO` 即可。
 
 ---
 
