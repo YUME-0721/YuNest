@@ -231,8 +231,8 @@ export default function Home() {
 
   const handleAdminAuth = (e?: React.FormEvent) => {
     e?.preventDefault();
-    // 获取环境变量密码，未配置时默认为 "123456"
-    const adminPass = (import.meta as any).env.VITE_ADMIN_PASSWORD || '123456';
+    // 获取环境变量密码，未配置时默认为 "admin1234"
+    const adminPass = (import.meta as any).env.ADMIN_PASSWORD || 'admin1234';
     
     if (password === adminPass) {
       sessionStorage.setItem('yunest_auth', 'true');

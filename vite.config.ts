@@ -6,8 +6,12 @@ import { handleSyncRequest } from './server/syncCore.ts';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const adminPassword = env.ADMIN_PASSWORD || 'admin1234';
 
   return {
+    define: {
+      'import.meta.env.ADMIN_PASSWORD': JSON.stringify(adminPassword),
+    },
     plugins: [
       react(),
       tailwindcss(),
@@ -38,9 +42,9 @@ export default defineConfig(({ mode }) => {
                 });
 
                 const response = await handleSyncRequest(webReq, {
-                  GITHUB_TOKEN: env.GITHUB_TOKEN || env.VITE_GITHUB_TOKEN,
-                  GITHUB_REPO: env.GITHUB_REPO || env.VITE_GITHUB_REPO,
-                  ADMIN_PASSWORD: env.ADMIN_PASSWORD || env.VITE_ADMIN_PASSWORD || '123456',
+                  GITHUB_TOKEN: env.GITHUB_TOKEN,
+                  GITHUB_REPO: env.GITHUB_REPO,
+                  ADMIN_PASSWORD: adminPassword,
                 });
 
                 res.statusCode = response.status;

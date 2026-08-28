@@ -87,10 +87,6 @@ export const PRESET_SEARCH_ENGINES = [
   },
 ];
 
-// 从环境变量读取默认同步配置
-const envGithubToken = (import.meta as any).env.VITE_GITHUB_TOKEN || '';
-const envGithubRepo = (import.meta as any).env.VITE_GITHUB_REPO || '';
-
 /** 默认个性化设置 */
 export const DEFAULT_SETTINGS: Settings = {
   siteName: 'YuNest',
@@ -103,14 +99,13 @@ export const DEFAULT_SETTINGS: Settings = {
   darkMask: true,
   darkMaskOpacity: 50,
   searchEngine: 'https://www.google.com/search?q=',
-  githubToken: envGithubToken,
-  githubRepo: envGithubRepo,
+  githubToken: '',
+  githubRepo: '',
   language: 'zh-CN',
   timezone: '', // 默认为空，跟随系统
   authRedirect: true,
-  // NOTE: 如果环境变量中配置了 Token，则默认开启自动同步，实现“一次部署，全站统一”
-  autoSync: !!envGithubToken,
-  githubSync: !!envGithubToken,
+  autoSync: true,
+  githubSync: true,
   widgetAlignment: 'center',
   widgetBackground: false,
 };
@@ -174,9 +169,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           settings: { 
             ...defaultState.settings, 
             ...parsed.settings,
-            // 如果本地没存过 token/repo 但环境变量里有，则使用环境变量的
-            githubToken: parsed.settings?.githubToken || envGithubToken,
-            githubRepo: parsed.settings?.githubRepo || envGithubRepo
+            githubToken: parsed.settings?.githubToken || '',
+            githubRepo: parsed.settings?.githubRepo || ''
           },
           widgets: extractedWidgets,
           categories: cleanedCategories
