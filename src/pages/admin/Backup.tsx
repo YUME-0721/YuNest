@@ -78,23 +78,10 @@ export default function Backup() {
   // 数据统计
   const totalBookmarks = state.categories.reduce((acc, cat) => acc + cat.bookmarks.length, 0);
 
-  const ensureAdminPassword = (): string => {
-    let pwd = sessionStorage.getItem('yunest_admin_pwd');
-    if (!pwd) {
-      pwd = prompt(t.adminAuthInput || '请输入管理员认证密码以连接云端代理：') || '';
-      if (pwd) {
-        sessionStorage.setItem('yunest_admin_pwd', pwd);
-        sessionStorage.setItem('yunest_auth', 'true');
-      }
-    }
-    return pwd;
-  };
-
   const handlePushToRepo = async () => {
     try {
       setIsSyncing(true);
       setSyncStatus('idle');
-      ensureAdminPassword();
       await syncToRepo();
       setSyncStatus('success');
       setSyncMessage(t.pushSuccess);
@@ -102,10 +89,6 @@ export default function Backup() {
       setConnStatus('connected');
     } catch (e: any) {
       setSyncStatus('error');
-      // 如果是 401 鉴权失败，清理掉错误的 sessionStorage 密码以便下次重新输入
-      if (e.message?.includes('口令') || e.message?.includes('401') || e.message?.includes('UNAUTHORIZED')) {
-        sessionStorage.removeItem('yunest_admin_pwd');
-      }
       setSyncMessage(e.message || t.syncFailed);
       checkConnection();
     } finally {
@@ -118,16 +101,12 @@ export default function Backup() {
     try {
       setIsSyncing(true);
       setSyncStatus('idle');
-      ensureAdminPassword();
       await fetchFromRepo();
       setSyncStatus('success');
       setSyncMessage(t.pullSuccess);
       setConnStatus('connected');
     } catch (e: any) {
       setSyncStatus('error');
-      if (e.message?.includes('口令') || e.message?.includes('401') || e.message?.includes('UNAUTHORIZED')) {
-        sessionStorage.removeItem('yunest_admin_pwd');
-      }
       setSyncMessage(e.message || t.syncFailed);
       checkConnection();
     } finally {

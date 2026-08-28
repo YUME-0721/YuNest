@@ -470,7 +470,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const syncToRepo = useCallback(async (tokenOverride?: string, repoOverride?: string) => {
     const token = tokenOverride || state.settings.githubToken;
     const repo = repoOverride || state.settings.githubRepo;
-    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
+    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || (import.meta as any).env.ADMIN_PASSWORD || 'admin1234';
 
     // 1. 优先尝试通过服务端边缘代理 /api/sync 推送 (安全免 Token 暴露)
     try {
@@ -563,7 +563,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchFromRepo = useCallback(async (tokenOverride?: string, repoOverride?: string) => {
     const token = tokenOverride || state.settings.githubToken;
     const repo = repoOverride || state.settings.githubRepo;
-    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
+    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || (import.meta as any).env.ADMIN_PASSWORD || 'admin1234';
 
     // 1. 优先尝试从服务端边缘代理 /api/sync 拉取
     try {
