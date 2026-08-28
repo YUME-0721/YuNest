@@ -179,23 +179,42 @@ export default function Backup() {
 
           <div className={`transition-all duration-300 ${state.settings.githubSync ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale-[0.5]'}`}>
 
+          {/* 边缘代理提示 */}
+          <div className="p-4 bg-orange-50/60 border border-orange-100 rounded-xl mb-6 flex items-start gap-3">
+            <div className="p-1 bg-[#ec5b13]/10 text-[#ec5b13] rounded-lg mt-0.5 shrink-0">
+              <Cloud className="w-4 h-4" />
+            </div>
+            <div className="text-xs text-slate-600 space-y-1 leading-relaxed">
+              <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                {t.proxySyncBadge}
+              </p>
+              <p className="text-slate-500">
+                {t.proxySyncDesc}
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-sm font-semibold mb-2">{t.syncToken}</label>
+              <label className="block text-sm font-semibold mb-2">
+                {t.syncToken} <span className="text-xs font-normal text-slate-400">({t.manualOverrideTip})</span>
+              </label>
               <input
                 type="password"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                placeholder="ghp_xxx"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors placeholder:text-slate-300"
+                placeholder="ghp_xxx (若服务端已配置可留空)"
                 value={state.settings.githubToken || ''}
                 onChange={(e) => updateSettings({ githubToken: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2">{t.syncRepo}</label>
+              <label className="block text-sm font-semibold mb-2">
+                {t.syncRepo} <span className="text-xs font-normal text-slate-400">({t.manualOverrideTip})</span>
+              </label>
               <input
                 type="text"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors"
-                placeholder="User/Repo"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:ring-[#ec5b13] focus:border-[#ec5b13] transition-colors placeholder:text-slate-300"
+                placeholder="User/Repo (若服务端已配置可留空)"
                 value={state.settings.githubRepo || ''}
                 onChange={(e) => updateSettings({ githubRepo: e.target.value })}
               />
@@ -245,7 +264,7 @@ export default function Backup() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <button
               onClick={handlePushToRepo}
-              disabled={isSyncing || !state.settings.githubToken || !state.settings.githubRepo}
+              disabled={isSyncing}
               className="py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UploadCloud className="w-4 h-4" />
@@ -253,7 +272,7 @@ export default function Backup() {
             </button>
             <button
               onClick={handlePullFromRepo}
-              disabled={isSyncing || !state.settings.githubToken || !state.settings.githubRepo}
+              disabled={isSyncing}
               className="py-3 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Download className="w-4 h-4" />

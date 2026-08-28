@@ -218,39 +218,67 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         console.warn('Failed to load default_data.json', e);
       }
 
-      // 2. 如果开启了同步，尝试从云端拉取更新
-      if (state.settings.githubSync && state.settings.autoSync && state.settings.githubToken && state.settings.githubRepo) {
+      // 2. 如果开启了同步，尝试从云端拉取更新 (优先通过服务端加密代理 /api/sync)
+      if (state.settings.githubSync && state.settings.autoSync) {
+        let synced = false;
+
+        // 2.1 尝试通过边缘代理 /api/sync 拉取
         try {
-          const token = state.settings.githubToken;
-          const repo = state.settings.githubRepo;
-          const path = 'data/yunest_data.json';
-          
-          // GitHub API 不允许自定义 Cache-Control 等 Header，否则会触发 CORS 预检失败
-          const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-            cache: 'no-store', // 使用 fetch 标准的 cache 属性
+          const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
+          const proxyRes = await fetch('/api/sync', {
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/vnd.github+json',
-            }
+              'x-auth-password': authPassword,
+            },
           });
 
-          if (response.ok) {
-            const data = await response.json();
-            const content = decodeURIComponent(escape(atob(data.content)));
-            const remoteData = JSON.parse(content) as AppState;
-            
-            // 只有当云端更新时间晚于当前时间才同步
+          if (proxyRes.ok) {
+            const remoteData = (await proxyRes.json()) as AppState;
             if (remoteData.updatedAt && remoteData.updatedAt > currentUpdatedAt) {
-              console.log('YuNest: 发现云端有更新，正在同步...');
-              remoteData.settings.githubToken = token;
-              remoteData.settings.githubRepo = repo;
+              console.log('YuNest: (边缘代理) 发现云端有更新，正在同步...');
               importData(remoteData);
+              synced = true;
             } else {
-              console.log('YuNest: 本地数据已是最新');
+              console.log('YuNest: (边缘代理) 本地数据已是最新');
+              synced = true;
             }
           }
-        } catch (err) {
-          console.warn('Auto sync check failed:', err);
+        } catch (proxyErr) {
+          // 代理不可用或未配置，尝试降级
+        }
+
+        // 2.2 降级方案：客户端直接调用 GitHub API (使用本地输入的 Token)
+        if (!synced && state.settings.githubToken && state.settings.githubRepo) {
+          try {
+            const token = state.settings.githubToken;
+            const repo = state.settings.githubRepo;
+            const path = 'data/yunest_data.json';
+            
+            // GitHub API 不允许自定义 Cache-Control 等 Header，否则会触发 CORS 预检失败
+            const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+              cache: 'no-store',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json',
+              }
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              const content = decodeURIComponent(escape(atob(data.content)));
+              const remoteData = JSON.parse(content) as AppState;
+              
+              if (remoteData.updatedAt && remoteData.updatedAt > currentUpdatedAt) {
+                console.log('YuNest: (客户端直连) 发现云端有更新，正在同步...');
+                remoteData.settings.githubToken = token;
+                remoteData.settings.githubRepo = repo;
+                importData(remoteData);
+              } else {
+                console.log('YuNest: (客户端直连) 本地数据已是最新');
+              }
+            }
+          } catch (err) {
+            console.warn('Auto sync check failed:', err);
+          }
         }
       }
     };
@@ -448,17 +476,47 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const syncToRepo = useCallback(async (tokenOverride?: string, repoOverride?: string) => {
     const token = tokenOverride || state.settings.githubToken;
     const repo = repoOverride || state.settings.githubRepo;
-    if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
+    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
+
+    // 1. 优先尝试通过服务端边缘代理 /api/sync 推送 (安全免 Token 暴露)
+    try {
+      const proxyRes = await fetch('/api/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-password': authPassword,
+        },
+        body: JSON.stringify(state),
+      });
+
+      if (proxyRes.ok) {
+        return true;
+      }
+
+      // 如果是服务端未配置或者 404 (非边缘部署环境)，转入客户端降级直连
+      const errData = await proxyRes.json().catch(() => ({}));
+      if (errData.code !== 'NOT_CONFIGURED' && proxyRes.status !== 404 && proxyRes.status !== 405) {
+        throw new Error(errData.error || '云端代理同步失败');
+      }
+    } catch (e: any) {
+      if (e.message && !e.message.includes('fetch') && !e.message.includes('NOT_CONFIGURED')) {
+        throw e;
+      }
+    }
+
+    // 2. 降级方案：客户端直接调用 GitHub API
+    if (!token || !repo) {
+      throw new Error('未检测到云端代理配置，请在下方手动填写 GitHub Token 和仓库名');
+    }
 
     const path = 'data/yunest_data.json';
-    // 默认推送到 main 分支，配合 Cloudflare Ignore Paths 使用效果最佳
     const branch = 'main'; 
     const stateToSave = { 
       ...state, 
       settings: { ...state.settings, githubToken: '', githubRepo: '' } 
     };
 
-    // 1. 获取现有文件的 SHA (如果文件已存在)
+    // 2.1 获取现有文件的 SHA
     let sha = '';
     const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
       headers: { 
@@ -467,7 +525,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
     });
     
-    // 如果 main 失败，尝试 master
     let actualBranch = branch;
     if (!getRes.ok && getRes.status === 404) {
       const masterRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=master`, {
@@ -486,7 +543,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       sha = existing.sha;
     }
 
-    // 3. 执行 PUT 请求
+    // 2.2 执行 PUT 请求
     const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: {
@@ -512,12 +569,40 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const fetchFromRepo = useCallback(async (tokenOverride?: string, repoOverride?: string) => {
     const token = tokenOverride || state.settings.githubToken;
     const repo = repoOverride || state.settings.githubRepo;
-    if (!token || !repo) throw new Error('缺少 GitHub Token 或 仓库名');
+    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
+
+    // 1. 优先尝试从服务端边缘代理 /api/sync 拉取
+    try {
+      const proxyRes = await fetch('/api/sync', {
+        headers: {
+          'x-auth-password': authPassword,
+        },
+      });
+
+      if (proxyRes.ok) {
+        const remoteData = (await proxyRes.json()) as AppState;
+        importData(remoteData);
+        return true;
+      }
+
+      const errData = await proxyRes.json().catch(() => ({}));
+      if (errData.code !== 'NOT_CONFIGURED' && proxyRes.status !== 404 && proxyRes.status !== 405) {
+        throw new Error(errData.error || '云端代理拉取失败');
+      }
+    } catch (e: any) {
+      if (e.message && !e.message.includes('fetch') && !e.message.includes('NOT_CONFIGURED')) {
+        throw e;
+      }
+    }
+
+    // 2. 降级方案：客户端直接调用 GitHub API
+    if (!token || !repo) {
+      throw new Error('未检测到云端代理配置，请在下方手动填写 GitHub Token 和仓库名');
+    }
 
     const path = 'data/yunest_data.json';
     const oldPath = 'yunest_data.json';
     
-    // 1. 优先尝试从 main 分支的 data/ 目录下读取
     let response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -525,7 +610,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // 2. 如果不存在，尝试从根目录读取（兼容旧版本）
     if (!response.ok && response.status === 404) {
       response = await fetch(`https://api.github.com/repos/${repo}/contents/${oldPath}`, {
         headers: {
@@ -535,7 +619,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    // 3. 如果还是不存在，尝试从 data 分支读取（兼容上一版设计）
     if (!response.ok && response.status === 404) {
       response = await fetch(`https://api.github.com/repos/${repo}/contents/${oldPath}?ref=data`, {
         headers: {
@@ -554,7 +637,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const content = decodeURIComponent(escape(atob(data.content)));
     const parsedData = JSON.parse(content);
     
-    // 恢复本地凭证，确保同步配置不丢失
     if (!parsedData.settings) parsedData.settings = {};
     parsedData.settings.githubToken = token;
     parsedData.settings.githubRepo = repo;

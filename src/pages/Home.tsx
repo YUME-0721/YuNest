@@ -236,6 +236,7 @@ export default function Home() {
     
     if (password === adminPass) {
       sessionStorage.setItem('yunest_auth', 'true');
+      sessionStorage.setItem('yunest_admin_pwd', password);
       setShowAuthModal(false);
       setIsAdmin(true);
       setPassword(''); // 清空密码以防下次打开还显示
@@ -575,11 +576,11 @@ export default function Home() {
       {/* 认证弹窗 */}
       {showAuthModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAuthModal(false)} />
-          <div className="relative w-full max-w-sm glass-strong rounded-3xl p-8 shadow-2xl animate-fade-in-scale border border-white/10 text-white">
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity" onClick={() => setShowAuthModal(false)} />
+          <div className="relative w-full max-w-sm glass-modal rounded-3xl p-8 shadow-2xl animate-fade-in-scale text-white">
             <button 
               onClick={() => setShowAuthModal(false)}
-              className="absolute top-4 right-4 text-white/20 hover:text-white/60 transition-colors p-2"
+              className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors p-2"
             >
               <X className="w-5 h-5" />
             </button>

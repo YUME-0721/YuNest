@@ -179,10 +179,19 @@ body {
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(20, 20, 26, 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* 针对弹窗等关键交互层，提供更具深度的防穿透毛玻璃 */
+.glass-modal {
+  background: rgba(18, 18, 24, 0.78);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 /* NOTE: 搜索栏聚焦光晕效果 */

@@ -33,9 +33,10 @@ YuNest 专注于提供最优雅的起始页体验，所有内容均保存在浏�
 - 🔐 **分组可见性控制与隐私保护**:
   - 支持 **隐藏分组**：可将特定书签分类设置为“隐藏”。隐藏的分组及其内容在未认证状态下对访客完全不可见，仅在管理员登录认证后才会动态出现在首页，不仅是管理后台的隔离，更是首页级的隐私防护。
 - 🛡️ **安全的后台认证**: 系统自带密码认证的管理后台，可随时在页面右上角点击进入配置界面，支持通过环境变量定制访问密码。
-- 💾 **云端同步与持久化支撑**: 
-  - 所有数据默认存储于浏览器 `localStorage`，支持 JSON 文件的手动备份与还原。
-  - **集成 GitHub API**：支持一键将数据推送到仓库的 `data/yunest_data.json`（推荐），通过配置“构建忽略路径”实现数据更新与代码部署的完美分离。
+- 💾 **多平台边缘代理云端同步与持久化支撑**: 
+  - **安全零暴露 (Zero-Leak)**: 采用 Cloudflare Pages Functions / Vercel Edge / 腾讯云 EdgeOne 边缘代理架构，将 GitHub Token 作为服务端机密变量（Secrets）加密存储，**彻底杜绝前端 JS 源码与 Network 抓包泄露 Token**。
+  - **跨设备免填 Token**: 任何设备（手机、平板、网吧等）输入管理密码登录后，即可直接一键双向推拉同步。
+  - **本地优先与多重备份**: 默认存储于浏览器 `localStorage`，支持 JSON 文件导入导出；无边缘函数环境（如 GitHub Pages）自动降级为客户端手动配置模式。
 - 🚀 **性能与体验优化**: 
   - **图标零延迟加载**: 采用自动图标固化技术与快速 CDN 缓存，确保即便在网络波动时也能瞬间呈现所有书签图标。
   - **零依赖一键部署**: 本身采用 `HashRouter` 设计完美适配静态托管平台，部署至 Cloudflare Pages、Vercel 及 GitHub Pages 时无需进行任何额外重定向配置。
@@ -47,6 +48,7 @@ YuNest 专注于提供最优雅的起始页体验，所有内容均保存在浏�
 - **构建工具**: [Vite 6](https://vitejs.dev/)
 - **样式**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **路由**: [React Router v7](https://reactrouter.com/) (HashRouter)
+- **边缘代理**: [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/functions/) / [Vercel Edge Functions](https://vercel.com/docs/functions/edge-functions)
 - **图标集**: [Lucide React](https://lucide.dev/)
 
 ---
@@ -57,7 +59,7 @@ YuNest 专注于提供最优雅的起始页体验，所有内容均保存在浏�
 
 1. **获取 GitHub Token**:
    - 访问 GitHub [个人设置 -> 开发者设置](https://github.com/settings/tokens)。
-   - 生成一个新的 **Personal Access Token (classic)**。
+   - 生成一个新的 **Personal Access Token (classic)** 或 **Fine-grained Token**。
    - **权限 (Scopes)**：如果是私有仓库请勾选 **`repo`**，如果是公开仓库勾选 **`public_repo`**。
 2. **确定同步仓库名**:
    - 格式为 `您的用户名/仓库名`，例如 `YUME-0721/YuNest`。
@@ -85,8 +87,8 @@ YuNest 提供了极简的部署流程，您可以根据需求选择在本地运�
    ```
 4. **配置环境变量**:
    - 复制根目录下的 `.env.example` 并重命名为 `.env`。
-   - **VITE_ADMIN_PASSWORD**: 设置您的后台管理密码（必填，默认 `123456`）。
-   - **VITE_GITHUB_TOKEN / REPO**: 填入上方准备好的凭证。
+   - **`ADMIN_PASSWORD`**: 设置您的管理认证密码（默认 `123456`）。
+   - **`GITHUB_TOKEN` / `GITHUB_REPO`**: 填入上方准备好的 GitHub 凭证（本地开发服务器会自动挂载 `/api/sync` 模拟边缘代理）。
 5. **启动开发服务**:
    ```bash
    npm run dev
@@ -95,34 +97,41 @@ YuNest 提供了极简的部署流程，您可以根据需求选择在本地运�
 
 ---
 
-### ☁️ 静态托管云部署 (Cloud Deployment)
+### ☁️ 边缘云端部署 (Cloud Deployment - 推荐)
 
-这是**最推荐**的部署方式。YuNest 作为一个纯静态应用，无需任何服务器成本，可永久免费运行。
+这是**最推荐**的部署方式。YuNest 随带边缘代理接口，无需额外购买服务器，永久免费运行。
 
-#### 1. 快捷云端部署 (推荐 Cloudflare Pages / Vercel)
+#### 1. Cloudflare Pages 部署 (最推荐)
 1. **Fork 本仓库**: 点击右上角的 **Fork**，将代码同步到您自己的 GitHub 账号下。
-2. **导入项目**: 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/) 或 Vercel，选择从 Git 导入刚才 Fork 的仓库。
+2. **导入项目**: 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)，选择 **Workers & Pages** -> **Create application** -> **Pages** -> 连接 GitHub 仓库。
 3. **配置构建指令**:
+   - **构建预设 (Framework preset)**: `Vite` 或 `None`
    - **构建命令 (Build Command)**: `npm run build`
    - **输出目录 (Output Directory)**: `dist`
-4. **设置环境变量 (关键)**:
-   - 在部署平台的 **Environment Variables** 设置中，新增以下变量：
-     - **VITE_ADMIN_PASSWORD**: 设置后台管理密码（必填）。
-     - **VITE_GITHUB_TOKEN**: 您的凭证（可选）。
-     - **VITE_GITHUB_REPO**: 您的同步仓库名（可选）。
+4. **设置服务端机密环境变量 (关键 - 彻底防泄露)**:
+   - 在项目设置的 **Environment Variables** 中，添加以下变量（勾选 **Encrypt / Secret** 加密）：
+     - **`GITHUB_TOKEN`**: 您的 GitHub 令牌（服务端加密，前端不可见）。
+     - **`GITHUB_REPO`**: 您的同步仓库名（如 `YUME-0721/YuNest`）。
+     - **`ADMIN_PASSWORD`**: 管理后台认证密码。
 5. **🚀 针对 Cloudflare 的深度优化 (推荐)**:
-   - **操作**: 进入项目：**设置 -> 构建与部署 -> 关键路径 -> 构建监视路径 (Build watch paths)**。
-   - **设置**: 在 **排除路径 (Excluded paths)** 中填入 `data/*` 并保存。这样更新书签时不会触发重新构建。
+   - 进入项目：**设置 -> 构建与部署 -> 关键路径 -> 构建监视路径 (Build watch paths)**。
+   - 在 **排除路径 (Excluded paths)** 中填入 `data/*` 并保存。这样更新书签时不会触发重复无意义构建。
 
-#### 2. 传统服务器私有化部署 (Nginx / Apache)
-如果您有自己的服务器，执行 `npm run build` 后将 `dist` 文件夹内容上传至服务器根目录即可。
+#### 2. Vercel 部署
+1. 导入 Fork 的 GitHub 仓库。
+2. 在 **Project Settings -> Environment Variables** 中添加 `GITHUB_TOKEN` (Sensitive)、`GITHUB_REPO` 和 `ADMIN_PASSWORD`。
+3. 点击 **Deploy**，系统会自动识别 `api/sync.ts` 并部署为全球边缘函数。
+
+#### 3. 腾讯云 EdgeOne Pages 部署
+1. 导入仓库并在构建配置中选择输出目录为 `dist`。
+2. 在环境变量中添加 `GITHUB_TOKEN`、`GITHUB_REPO` 和 `ADMIN_PASSWORD` 即可。
 
 ---
 
-## 🛡️ 数据安全与权限
-- **加密同步**: 数据同步到 GitHub `main` 分支下的 `data/yunest_data.json`。
-- **Token 安全**: 同步时会自动剔除隐私凭据，确保数据文件本身安全。
-- **本地优先**: 遵循 Local First 原则，手动刷新不会丢失任何未同步的本地修改。
+## 🛡️ 数据安全与权限设计
+- **边缘代理隔离**: 令牌仅存储在 Cloudflare / Vercel / EdgeOne 边缘服务端内存中，浏览器仅通过密码鉴权与 `/api/sync` 通信，抓包和逆向 F12 源码绝无泄露风险。
+- **敏感字段清洗**: 数据同步到 GitHub `main` 分支下的 `data/yunest_data.json` 时，会自动过滤掉任何本地 Token 字段。
+- **本地优先 (Local-First)**: 即使离线或网络异常，所有数据依然安全保存在浏览器本地。
 
 ## 📄 开源协议
 
@@ -131,4 +140,5 @@ YuNest 提供了极简的部署流程，您可以根据需求选择在本地运�
 - **自由软件**：您可以自由地运行、研究、共享和修改本项目。
 - **开源精神**：如果您分发修改后的版本，则必须在相同的 GPL-3.0 协议下发布。
 - **详情请参阅项目根目录下的 `LICENSE` 文件。**
+
 

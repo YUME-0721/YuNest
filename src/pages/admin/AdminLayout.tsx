@@ -49,15 +49,23 @@ export default function AdminLayout() {
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        {/* 品牌标识 */}
-        <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-          <div className="w-10 h-10 rounded-xl bg-[#ec5b13] flex items-center justify-center overflow-hidden shadow-lg shadow-[#ec5b13]/20">
-            <img src="/favicon.svg" alt="logo" className="w-7 h-7 filter brightness-0 invert" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight">{state.settings.siteName}</h1>
-            <p className="text-xs text-slate-500 font-medium">{t.siteNav}</p>
-          </div>
+        {/* 品牌标识与返回首页入口 */}
+        <div className="p-4 border-b border-slate-100">
+          <Link
+            to="/"
+            className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-all duration-200 group"
+            title={t.backToHome}
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#ec5b13] flex items-center justify-center overflow-hidden shadow-md shadow-[#ec5b13]/20 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-[#ec5b13]/30 transition-all duration-200 shrink-0">
+              <img src="/favicon.svg" alt="logo" className="w-6 h-6 filter brightness-0 invert" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-bold tracking-tight text-slate-900 truncate group-hover:text-[#ec5b13] transition-colors">
+                {state.settings.siteName}
+              </h1>
+              <p className="text-xs text-slate-400 font-medium group-hover:text-slate-500 transition-colors">{t.siteNav}</p>
+            </div>
+          </Link>
         </div>
 
         {/* 导航链接 */}
@@ -82,12 +90,12 @@ export default function AdminLayout() {
         </nav>
 
         {/* 侧边栏底部操作区 */}
-        <div className="p-4 border-t border-slate-100 space-y-1">
+        <div className="p-4 border-t border-slate-100">
           <a
             href="https://navdocs.072199.xyz/"
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-between px-3 py-2 rounded-lg text-slate-500 hover:bg-[#ec5b13]/5 hover:text-[#ec5b13] transition-all duration-200 font-medium group"
+            className="flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-500 hover:bg-[#ec5b13]/5 hover:text-[#ec5b13] transition-all duration-200 font-medium group"
             title={t.docsTooltip}
           >
             <div className="flex items-center gap-3">
@@ -96,14 +104,6 @@ export default function AdminLayout() {
             </div>
             <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
           </a>
-
-          <Link
-            to="/"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-all duration-200 font-medium"
-          >
-            <Home className="w-5 h-5" />
-            <span className="text-sm">{t.backToHome}</span>
-          </Link>
         </div>
       </aside>
 
@@ -118,24 +118,34 @@ export default function AdminLayout() {
             >
               {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-[#ec5b13] flex items-center justify-center overflow-hidden">
                 <img src="/favicon.svg" alt="logo" className="w-5 h-5 filter brightness-0 invert" />
               </div>
-              <span className="text-sm font-bold">{state.settings.siteName}</span>
-            </div>
+              <span className="text-sm font-bold text-slate-900">{state.settings.siteName}</span>
+            </Link>
           </div>
 
-          <a
-            href="https://navdocs.072199.xyz/"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#ec5b13] bg-[#ec5b13]/10 hover:bg-[#ec5b13]/20 transition-colors"
-            title={t.docsTooltip}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>{t.docSite}</span>
-          </a>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              title={t.backToHome}
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>{t.backToHome}</span>
+            </Link>
+            <a
+              href="https://navdocs.072199.xyz/"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#ec5b13] bg-[#ec5b13]/10 hover:bg-[#ec5b13]/20 transition-colors"
+              title={t.docsTooltip}
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>{t.docSite}</span>
+            </a>
+          </div>
         </div>
 
         <main className="flex-1 min-w-0 overflow-auto flex flex-col">

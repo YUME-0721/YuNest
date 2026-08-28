@@ -33,9 +33,10 @@ YuNest focuses on providing the most elegant "Start Page" experience. All conten
 - 🔐 **Privacy & Visibility Control**:
   - **Hidden Categories**: Set specific bookmark categories to "Hidden". These and their contents are completely invisible to guests and only appear dynamically after admin authentication.
 - 🛡️ **Secure Admin Panel**: Built-in password-protected management interface. Customize the access password via environment variables.
-- 💾 **Cloud Sync & Persistence**: 
-  - Default storage in `localStorage`. Supports JSON backup/restore.
-  - **GitHub API Integration**: Sync data to your repository's `data/yunest_data.json` (Recommended). Separate data updates from code deployments using Build Watch Paths.
+- 💾 **Cross-Platform Edge Proxy Cloud Sync & Persistence**: 
+  - **Zero Token Leak**: Uses Cloudflare Pages Functions / Vercel Edge / Tencent Cloud EdgeOne serverless proxy architecture. Store GitHub Tokens as server-side encrypted Secrets, **completely preventing tokens from leaking in frontend JS bundles or Network tabs**.
+  - **Token-Free Across Devices**: Log in with your admin password on any device (phone, tablet, cybercafe PC) to push or pull data with one click.
+  - **Local-First & Multi-Tier Fallback**: Stored in `localStorage` by default with JSON backup/restore support; automatically falls back to client-side direct sync on non-edge platforms (e.g. GitHub Pages).
 - 🚀 **Performance Optimized**: 
   - **Zero-Latency Icons**: Icon solidification tech and CDN caching ensure instant rendering even on slow connections.
   - **Zero-Dependency Deployment**: Uses `HashRouter` for perfect compatibility with Cloudflare Pages, Vercel, and GitHub Pages without extra redirection config.
@@ -47,21 +48,22 @@ YuNest focuses on providing the most elegant "Start Page" experience. All conten
 - **Build Tool**: [Vite 6](https://vitejs.dev/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Routing**: [React Router v7](https://reactrouter.com/) (HashRouter)
+- **Edge Proxy**: [Cloudflare Pages Functions](https://developers.cloudflare.com/pages/functions/) / [Vercel Edge Functions](https://vercel.com/docs/functions/edge-functions)
 - **Icons**: [Lucide React](https://lucide.dev/)
 
 ---
 
 ## 📋 Prerequisites
 
-Before starting the deployment, it is recommended to prepare the credentials required for GitHub automatic synchronization (optional but highly recommended):
+Before starting the deployment, prepare the credentials required for GitHub synchronization (optional but highly recommended):
 
 1. **Get GitHub Token**:
    - Visit GitHub [Settings -> Developer settings](https://github.com/settings/tokens).
-   - Generate a new **Personal Access Token (classic)**.
+   - Generate a new **Personal Access Token (classic)** or **Fine-grained Token**.
    - **Scopes**: Select **`repo`** for private repositories or **`public_repo`** for public repositories.
 2. **Determine Sync Repo Name**:
    - Format is `YourUsername/RepoName`, e.g., `YUME-0721/YuNest`.
-   - **Privacy Suggestion**: If you want your code to be public but your bookmark data private, it is recommended to create a separate **Private Repository** for data storage.
+   - **Privacy Suggestion**: If you want your code to be public but your bookmark data private, create a separate **Private Repository** for data storage.
 
 ---
 
@@ -85,8 +87,8 @@ Suitable for users who want to customize the code further or run it in a private
    ```
 4. **Environment Config**:
    - Copy `.env.example` to `.env`.
-   - **VITE_ADMIN_PASSWORD**: Set your admin panel password (required, default `123456`).
-   - **VITE_GITHUB_TOKEN / REPO**: Enter the credentials prepared above.
+   - **`ADMIN_PASSWORD`**: Set your admin panel password (default `123456`).
+   - **`GITHUB_TOKEN` / `GITHUB_REPO`**: Enter the credentials prepared above (the local dev server will automatically mount `/api/sync` proxy).
 5. **Start Dev Server**:
    ```bash
    npm run dev
@@ -95,34 +97,41 @@ Suitable for users who want to customize the code further or run it in a private
 
 ---
 
-### ☁️ Static Hosting Cloud Deployment
+### ☁️ Edge Cloud Deployment (Recommended)
 
-**Most Recommended.** YuNest can run permanently for free as a static site.
+**Most Recommended.** YuNest includes built-in edge proxy APIs. It runs permanently for free without requiring a dedicated server.
 
-#### 1. Quick Deployment (Cloudflare Pages / Vercel)
+#### 1. Cloudflare Pages Deployment (Recommended)
 1. **Fork this Repo**: Click **Fork** to copy the code to your GitHub account.
-2. **Import Project**: Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) or Vercel and import your forked repo.
+2. **Import Project**: Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/), go to **Workers & Pages** -> **Create application** -> **Pages** -> Connect GitHub repo.
 3. **Build Config**:
+   - **Framework preset**: `Vite` or `None`
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
-4. **Environment Variables**:
-   - Add the following in the platform's Environment Variables settings:
-     - **VITE_ADMIN_PASSWORD**: Your admin panel password (Required).
-     - **VITE_GITHUB_TOKEN**: Your token (Optional).
-     - **VITE_GITHUB_REPO**: Your sync repo name (Optional).
+4. **Server-Side Secret Environment Variables (Crucial - Anti-Leak)**:
+   - In project settings **Environment Variables**, add the following (check **Encrypt / Secret**):
+     - **`GITHUB_TOKEN`**: Your GitHub Token (encrypted on the server, invisible to frontend).
+     - **`GITHUB_REPO`**: Your sync repo name (e.g. `YUME-0721/YuNest`).
+     - **`ADMIN_PASSWORD`**: Admin panel password.
 5. **🚀 Cloudflare Optimization (Recommended)**:
-   - **Steps**: Go to **Settings -> Build & deployment -> Build watch paths**.
-   - **Exclude**: Add `data/*` in **Excluded paths**. This prevents data sync from triggering redundant build tasks.
+   - Go to **Settings -> Build & deployment -> Build watch paths**.
+   - In **Excluded paths**, add `data/*` and save. This prevents data sync from triggering redundant build tasks.
 
-#### 2. Manual Server Deployment (Nginx / Apache)
-Run `npm run build` and upload the contents of the `dist` folder to your web server's root directory.
+#### 2. Vercel Deployment
+1. Import your forked GitHub repository.
+2. In **Project Settings -> Environment Variables**, add `GITHUB_TOKEN` (Sensitive), `GITHUB_REPO`, and `ADMIN_PASSWORD`.
+3. Click **Deploy**. Vercel will automatically recognize `api/sync.ts` and deploy it as a global Edge Function.
+
+#### 3. Tencent Cloud EdgeOne Pages
+1. Import repository and set output directory to `dist`.
+2. Add `GITHUB_TOKEN` (Encrypted), `GITHUB_REPO`, and `ADMIN_PASSWORD` in Environment Variables.
 
 ---
 
 ## 🛡️ Security & Privacy
-- **Encrypted Sync**: Data is saved to `data/yunest_data.json` on the `main` branch.
-- **Token Masking**: Sensitive tokens are removed before syncing to ensure data files are safe.
-- **Local First**: Manual refreshes won't overwrite unsynced local changes.
+- **Edge Proxy Isolation**: Token is stored strictly in Cloudflare / Vercel / EdgeOne server-side memory. The browser only communicates with `/api/sync` via password authentication. Zero risk of token leak through F12 inspect or network sniffing.
+- **Sensitive Field Sanitization**: Automatic stripping of local token fields when saving data to `data/yunest_data.json` on the `main` branch.
+- **Local-First**: All data is preserved safely in the browser's `localStorage` even when offline.
 
 ## 📄 License
 
@@ -131,4 +140,5 @@ This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**
 - **Free Software**: You are free to run, study, share, and modify the software.
 - **Copyleft**: If you distribute modified versions of the project, they must be licensed under the same GPL-3.0 license.
 - **Refer to the `LICENSE` file for the full text.**
+
 
