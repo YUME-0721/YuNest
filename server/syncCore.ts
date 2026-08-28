@@ -93,6 +93,25 @@ export async function handleSyncRequest(req: Request, env: SyncEnv): Promise<Res
         });
       }
 
+      // 如果仓库刚创建，尚未推送过任何数据文件 (404)，说明连接是通的，但数据文件尚未初始化
+      if (res.status === 404) {
+        // 测试一下仓库本身是否存在
+        const repoCheck = await fetch(`https://api.github.com/repos/${repo}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+            'User-Agent': 'YuNest-Sync-Proxy',
+          },
+        });
+
+        if (repoCheck.ok) {
+          return new Response(
+            JSON.stringify({ code: 'FILE_NOT_FOUND', message: '云端仓库连接正常，尚未初始化数据，请先执行推送' }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
         return new Response(
@@ -102,7 +121,22 @@ export async function handleSyncRequest(req: Request, env: SyncEnv): Promise<Res
       }
 
       const data: any = await res.json();
-      const content = decodeURIComponent(escape(atob(data.content)));
+      if (!data.content) {
+        return new Response(
+          JSON.stringify({ code: 'EMPTY_CONTENT', error: '获取到的云端文件内容为空' }),
+          { status: 500, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // 安全解码 Base64（兼容 UTF-8 中文字符）
+      const cleanBase64 = data.content.replace(/\s/g, '');
+      const binaryString = atob(cleanBase64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const content = new TextDecoder('utf-8').decode(bytes);
+
       return new Response(content, {
         headers: {
           'Content-Type': 'application/json',

@@ -28,7 +28,8 @@ export default function Backup() {
     }
 
     setConnStatus('checking');
-    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
+    // 如果 sessionStorage 还没有，回退读取环境配置密码
+    const authPassword = sessionStorage.getItem('yunest_admin_pwd') || (import.meta as any).env.ADMIN_PASSWORD || 'admin1234';
 
     // 1. 测试边缘代理 /api/sync
     try {
@@ -40,8 +41,8 @@ export default function Backup() {
         return;
       }
       const data = await res.json().catch(() => ({}));
-      // 如果明确是未配置变量或 404，转入测试客户端配置
-      if (data.code !== 'NOT_CONFIGURED' && res.status !== 404) {
+      // 如果明确是未配置变量或 404 (非边缘部署环境)，转入测试客户端配置
+      if (data.code !== 'NOT_CONFIGURED' && res.status !== 404 && res.status !== 405) {
         setConnStatus('disconnected');
         return;
       }
@@ -97,6 +98,8 @@ export default function Backup() {
       await syncToRepo();
       setSyncStatus('success');
       setSyncMessage(t.pushSuccess);
+      // 推送成功后立即更新连通状态为绿灯
+      setConnStatus('connected');
     } catch (e: any) {
       setSyncStatus('error');
       // 如果是 401 鉴权失败，清理掉错误的 sessionStorage 密码以便下次重新输入
@@ -104,6 +107,7 @@ export default function Backup() {
         sessionStorage.removeItem('yunest_admin_pwd');
       }
       setSyncMessage(e.message || t.syncFailed);
+      checkConnection();
     } finally {
       setIsSyncing(false);
       setTimeout(() => setSyncStatus('idle'), 4000);
@@ -118,12 +122,14 @@ export default function Backup() {
       await fetchFromRepo();
       setSyncStatus('success');
       setSyncMessage(t.pullSuccess);
+      setConnStatus('connected');
     } catch (e: any) {
       setSyncStatus('error');
       if (e.message?.includes('口令') || e.message?.includes('401') || e.message?.includes('UNAUTHORIZED')) {
         sessionStorage.removeItem('yunest_admin_pwd');
       }
       setSyncMessage(e.message || t.syncFailed);
+      checkConnection();
     } finally {
       setIsSyncing(false);
       setTimeout(() => setSyncStatus('idle'), 4000);

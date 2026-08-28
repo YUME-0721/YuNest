@@ -574,8 +574,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (proxyRes.ok) {
-        const remoteData = (await proxyRes.json()) as AppState;
-        importData(remoteData);
+        const result = await proxyRes.json();
+        if (result.code === 'FILE_NOT_FOUND') {
+          throw new Error(result.message || '云端仓库连接正常，尚未初始化数据，请先执行推送');
+        }
+        importData(result as AppState);
         return true;
       }
 
