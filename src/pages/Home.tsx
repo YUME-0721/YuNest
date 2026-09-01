@@ -70,45 +70,12 @@ export default function Home() {
   const { settings, categories, widgets = [] } = state;
   const t = TRANSLATIONS[settings.language || 'zh-CN'];
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  
   // 认证相关
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(false);
 
-  // 根据设置的 searchEngine 获取可用引擎列表（如果有自定义，动态添加）
-  const availableEngines = useMemo(() => {
-    const hasCustom = !PRESET_SEARCH_ENGINES.some(e => e.url === settings.searchEngine);
-    if (hasCustom && settings.searchEngine) {
-      let iconUrl = '';
-      try {
-        const urlObj = new URL(settings.searchEngine);
-        iconUrl = `https://favicon.im/${urlObj.hostname}`;
-      } catch (e) {
-        // Fallback icon handled in render
-      }
-      return [
-        {
-          id: 'custom',
-          name: t.searchEngineOther || '自定义',
-          url: settings.searchEngine,
-          icon: iconUrl
-        },
-        ...PRESET_SEARCH_ENGINES
-      ];
-    }
-    return PRESET_SEARCH_ENGINES;
-  }, [settings.searchEngine, t.searchEngineOther]);
-
-  // 根据当前引擎列表匹配索引
-  const [engineIndex, setEngineIndex] = useState(() => {
-    const idx = availableEngines.findIndex(e => e.url === settings.searchEngine);
-    return idx === -1 ? 0 : idx;
-  });
-  
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAdmin, setIsAdmin] = useState(() => sessionStorage.getItem('yunest_auth') === 'true');
   
@@ -133,18 +100,6 @@ export default function Home() {
     return () => {
       window.removeEventListener('click', handleCloseMenu);
       window.removeEventListener('scroll', handleCloseMenu);
-    };
-  }, []);
-
-  // 监听搜索框输入，更新 Home 的 searchQuery 以实现书签过滤功能
-  useEffect(() => {
-    const handleSearchQueryChange = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
-      setSearchQuery(customEvent.detail || '');
-    };
-    window.addEventListener('yunest-search-query', handleSearchQueryChange);
-    return () => {
-      window.removeEventListener('yunest-search-query', handleSearchQueryChange);
     };
   }, []);
 
@@ -180,13 +135,6 @@ export default function Home() {
     root.style.setProperty('--glass-opacity', `${opacityValue}`);
   }, [settings.glassEffectOpacity]);
 
-  // 将 settings.timezone 传入 useClock
-  const { time, date } = useClock(settings.timezone, settings.language);
-
-  // 保证 engineIndex 不越界
-  const safeEngineIndex = engineIndex >= availableEngines.length ? 0 : engineIndex;
-  const currentEngine = availableEngines[safeEngineIndex];
-
   const bgUrl = useMemo(() => {
     if (settings.wallpaperType === 'local' && settings.localWallpaper) {
       return settings.localWallpaper;
@@ -201,33 +149,11 @@ export default function Home() {
     return url;
   }, [settings.wallpaperType, settings.wallpaperUrl, settings.localWallpaper]);
 
-  const filteredCategories = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return categories.filter(c => c.bookmarks.length > 0).filter(c => !c.isHidden || isAdmin);
-
+  const visibleCategories = useMemo(() => {
     return categories
-      .map(cat => ({
-        ...cat,
-        bookmarks: cat.bookmarks.filter(b => 
-          b.title.toLowerCase().includes(query) || 
-          b.url.toLowerCase().includes(query) || 
-          (b.description && b.description.toLowerCase().includes(query))
-        )
-      }))
       .filter(c => c.bookmarks.length > 0)
       .filter(c => !c.isHidden || isAdmin);
-  }, [categories, searchQuery, isAdmin]);
-
-  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      window.open(`${currentEngine.url}${encodeURIComponent(searchQuery)}`, '_blank');
-      setSearchQuery('');
-    }
-  };
-
-  const toggleEngine = () => {
-    setEngineIndex((prev) => (prev + 1) % availableEngines.length);
-  };
+  }, [categories, isAdmin]);
 
   const handleAdminAuth = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -441,7 +367,7 @@ export default function Home() {
         {/* 全局小组件区域 */}
         {widgets && widgets.length > 0 && (
           <div 
-            className={`w-full max-w-7xl mb-6 animate-fade-in flex ${
+            className={`w-full max-w-7xl mb-6 animate-fade-in flex relative z-40 ${
               settings.widgetAlignment === 'left' ? 'justify-start' : 
               settings.widgetAlignment === 'right' ? 'justify-end' : 
               'justify-center'
@@ -449,7 +375,7 @@ export default function Home() {
             style={{ animationDelay: '0.2s' }}
           >
             <div 
-              className="flex flex-wrap gap-3 sm:gap-4 px-1" 
+              className="flex flex-wrap gap-3 sm:gap-4 px-1 relative z-40" 
               style={{ 
                 width: '100%',
                 justifyContent: settings.widgetAlignment === 'left' ? 'flex-start' : 
@@ -470,7 +396,7 @@ export default function Home() {
                 return (
                   <React.Fragment key={widget.id}>
                     {widget.wrapLine && index > 0 && <div className="w-full h-0 flex-shrink-0" />}
-                    <div className={`${widthClass} ${heightClass} flex-shrink-0`}>
+                    <div className={`${widthClass} ${heightClass} flex-shrink-0 relative z-40`}>
                       <WidgetRenderer bookmark={widget} />
                     </div>
                   </React.Fragment>
@@ -482,7 +408,7 @@ export default function Home() {
 
         {/* 书签分组 - 改为垂直排列，内部书签横向排列 */}
         <div className="w-full max-w-7xl flex flex-col gap-12 pb-24">
-          {filteredCategories.map((category, catIndex) => (
+          {visibleCategories.map((category, catIndex) => (
             <section
               key={category.id}
               className="animate-fade-in-scale"

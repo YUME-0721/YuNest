@@ -20,6 +20,9 @@ export const TRANSLATIONS = {
     lanUrlDesc: '局域网/私有访问',
     settingsIcon: '登录',
     builtBy: 'Handcrafted with passion by YUME © 2026',
+    searchDropdownInEngine: '在 {engine} 中搜索 "{query}"',
+    searchDropdownNoMatch: '未找到匹配书签，按 Enter 在 {engine} 中搜索',
+    searchDropdownHint: '↑ ↓ 选择 · ↵ 跳转 · ESC 关闭',
 
     // 后台通用
     backToHome: '返回首页',
@@ -204,6 +207,9 @@ export const TRANSLATIONS = {
     lanUrlDesc: 'Intranet/Private Access',
     settingsIcon: 'Login',
     builtBy: 'Handcrafted with passion by YUME © 2026',
+    searchDropdownInEngine: 'Search "{query}" in {engine}',
+    searchDropdownNoMatch: 'No matching bookmark found, press Enter to search in {engine}',
+    searchDropdownHint: '↑ ↓ Select · ↵ Open · ESC Close',
     docSite: 'Docs',
     viewDocs: 'View Documentation',
     docsTooltip: 'Click to visit YuNest documentation',
