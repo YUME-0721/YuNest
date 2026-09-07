@@ -4,6 +4,7 @@ import { useData, PRESET_SEARCH_ENGINES, Bookmark } from '../../context/DataCont
 import { Search, Globe, ExternalLink, CornerDownLeft } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations';
+import { getFaviconProxyUrl, normalizeIconUrl, isTransparentPlaceholder } from '../../lib/favicon';
 
 interface SearchWidgetProps {
   size: string;
@@ -16,54 +17,46 @@ interface MatchedItem {
   categoryIcon?: string;
 }
 
-/** 辅助获取站点 Favicon：通过后端代理，代理内部会依次尝试 Google / DuckDuckGo / favicon.im */
-function getFaviconUrl(siteUrl: string): string {
-  try {
-    const hostname = new URL(siteUrl).hostname;
-    return `/api/icon-proxy?host=${encodeURIComponent(hostname)}`;
-  } catch {
-    return '';
-  }
-}
-
-/** 检测图片是否为 1x1 透明 PNG（代理失败时的兜底响应） */
-function isTransparentPlaceholder(img: HTMLImageElement): boolean {
-  return img.naturalWidth <= 1 && img.naturalHeight <= 1;
-}
-
-/** 渲染图标组件 */
+/** 渲染图标组件 — 统一走代理 */
 const BookmarkIcon: React.FC<{ icon?: string; siteUrl?: string; className?: string }> = ({
   icon,
   siteUrl,
   className = 'w-4 h-4',
 }) => {
   const [imgError, setImgError] = useState(false);
-  const [useFaviconFallback, setUseFaviconFallback] = useState(false);
 
-  // 1. URL 图片
+  // 1. URL 图片（规范化后统一走代理）
   if (icon && (icon.startsWith('http://') || icon.startsWith('https://') || icon.startsWith('/') || icon.startsWith('data:')) && !imgError) {
-    const src = useFaviconFallback && siteUrl ? getFaviconUrl(siteUrl) : icon;
+    const src = normalizeIconUrl(icon);
+    const isProxyUrl = src.startsWith('/api/icon-proxy');
     return (
       <img
         src={src}
         alt=""
-        className={`${className} object-contain`}
+        className={`${className} object-contain rounded-sm`}
         loading="lazy"
         onLoad={(e) => {
+          // 代理返回透明 PNG = 所有来源失败，降级到兜底
           if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
-            if (!useFaviconFallback && siteUrl) {
-              setUseFaviconFallback(true);
+            if (!isProxyUrl && siteUrl) {
+              // 直连真实图片返回透明 PNG（几乎不会，但作为防御）
+              (e.target as HTMLImageElement).src = getFaviconProxyUrl(siteUrl);
             } else {
               setImgError(true);
             }
           }
         }}
         onError={() => {
-          if (!useFaviconFallback && siteUrl) {
-            setUseFaviconFallback(true);
-          } else {
-            setImgError(true);
+          // 直连真实图片失败，尝试代理一次
+          if (!isProxyUrl && siteUrl) {
+            const el = document.querySelector(`img[src="${src}"]`) as HTMLImageElement | null;
+            if (el && !el.getAttribute('data-retried')) {
+              el.setAttribute('data-retried', 'true');
+              el.src = getFaviconProxyUrl(siteUrl);
+              return;
+            }
           }
+          setImgError(true);
         }}
       />
     );
@@ -77,13 +70,13 @@ const BookmarkIcon: React.FC<{ icon?: string; siteUrl?: string; className?: stri
     }
   }
 
-  // 3. 自动抓取 Favicon
+  // 3. 无 icon 字段时自动走代理抓 favicon
   if (siteUrl && !imgError) {
-    const fav = getFaviconUrl(siteUrl);
-    if (fav) {
+    const proxyUrl = getFaviconProxyUrl(siteUrl);
+    if (proxyUrl) {
       return (
         <img
-          src={fav}
+          src={proxyUrl}
           alt=""
           className={`${className} object-contain rounded-sm`}
           loading="lazy"
@@ -129,8 +122,7 @@ export const SearchWidget: React.FC<SearchWidgetProps> = ({ size, showBackground
     if (hasCustom && settings.searchEngine) {
       let iconUrl = '';
       try {
-        const urlObj = new URL(settings.searchEngine);
-        iconUrl = `https://favicon.im/${urlObj.hostname}`;
+        iconUrl = getFaviconProxyUrl(settings.searchEngine);
       } catch (e) {
         // Fallback icon handled in render
       }

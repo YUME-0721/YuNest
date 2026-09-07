@@ -10,6 +10,7 @@ import { Plus, Edit2, Trash2, FolderOpen, LayoutGrid, LayoutList, Eye, EyeOff, L
 import { Reorder, useDragControls } from 'motion/react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
+import { getFaviconProxyUrl, normalizeIconUrl, isTransparentPlaceholder } from '../../lib/favicon.ts';
 
 function CategoryTabItem({
   category,
@@ -442,9 +443,9 @@ export default function Bookmarks() {
     if (!bookmarkForm.title || !activeCategory || !bookmarkForm.url) return;
     
     const finalForm = { ...bookmarkForm, itemType: 'link' } as any;
-    // 如果没有填写图标，尝试自动补全为解析出的 favicon URL，实现数据固化，提升加载速度
+    // 未填图标时自动补全为代理 URL，直接存代理格式（/api/icon-proxy?host=xxx）
     if (!finalForm.icon && finalForm.url) {
-      finalForm.icon = getFaviconUrl(finalForm.url);
+      finalForm.icon = getFaviconProxyUrl(finalForm.url);
     }
 
     if (editingBookmark) {
@@ -469,28 +470,18 @@ export default function Bookmarks() {
     setIsBookmarkModalOpen(true);
   };
 
-  /** 获取 Favicon 链接（高优先）：通过后端代理，代理内部会依次尝试多个图标服务 */
-  const getFaviconUrl = (url: string) => {
-    try {
-      const hostname = new URL(url).hostname;
-      return `/api/icon-proxy?host=${encodeURIComponent(hostname)}`;
-    } catch {
-      return '';
-    }
-  };
 
-  /** 检测图片是否为 1x1 透明 PNG（代理失败时的兜底响应） */
-  const isTransparentPlaceholder = (img: HTMLImageElement) =>
-    img.naturalWidth <= 1 && img.naturalHeight <= 1;
 
-  /** 渲染预览图标 */
+  /** 渲染预览图标（统一走代理） */
   const renderItemIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
-    // 1. URL 图片
+    // 1. URL 图片（先规范化已知被墙 URL）
     if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('/') || iconName.startsWith('data:'))) {
+      const src = normalizeIconUrl(iconName);
+      const isProxyUrl = src.startsWith('/api/icon-proxy');
       return (
         <img
-          src={iconName}
-          className={`${size} object-contain`}
+          src={src}
+          className={`${size} object-contain rounded-sm`}
           alt="icon"
           onLoad={(e) => {
             if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
@@ -499,10 +490,9 @@ export default function Bookmarks() {
           }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            const retried = target.getAttribute('data-retried');
-            if (!retried && siteUrl) {
-              const fav = getFaviconUrl(siteUrl);
-              if (fav && fav !== target.src) {
+            if (!isProxyUrl && !target.getAttribute('data-retried') && siteUrl) {
+              const fav = getFaviconProxyUrl(siteUrl);
+              if (fav) {
                 target.setAttribute('data-retried', 'true');
                 target.src = fav;
                 return;
@@ -518,21 +508,19 @@ export default function Bookmarks() {
     const IconComponent = (Icons as any)[iconName];
     if (IconComponent) return <IconComponent className={size} />;
 
-    // 3. 自动 Favicon（通过后端代理）
+    // 3. 自动 Favicon（通过代理）
     if (siteUrl) {
       return (
-        <img 
-          src={getFaviconUrl(siteUrl)} 
-          className={`${size} object-contain`} 
-          alt="favicon" 
+        <img
+          src={getFaviconProxyUrl(siteUrl)}
+          className={`${size} object-contain rounded-sm`}
+          alt="favicon"
           onLoad={(e) => {
             if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
               (e.target as HTMLImageElement).style.display = 'none';
             }
           }}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
       );
     }
