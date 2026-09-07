@@ -12,18 +12,24 @@ import { TRANSLATIONS } from '../i18n/translations.ts';
 import { WidgetRenderer } from '../components/widgets/WidgetRenderer.tsx';
 
 /**
- * 根据域名自动获取 favicon
- * NOTE: 使用 Google Favicon API 作为备选方案
+ * 根据域名通过后端代理获取 favicon
+ * 后端会依次尝试 Google / DuckDuckGo / favicon.im 等多个来源
  */
-function getFaviconUrl(siteUrl: string): string {
+function getProxyFaviconUrl(siteUrl: string): string {
   try {
-    const url = new URL(siteUrl);
-    // 切换至境内外访问更稳定的图标抓取服务，解决 Google S2 壁垒问题
-    // 使用后端代理获取图标，避免跨域和网络限制
-    return `/api/icon-proxy?url=${encodeURIComponent(`https://favicon.im/${url.hostname}`)}`;
+    const hostname = new URL(siteUrl).hostname;
+    return `/api/icon-proxy?host=${encodeURIComponent(hostname)}`;
   } catch {
     return '';
   }
+}
+
+/**
+ * 检测图片是否为 1x1 透明 PNG（代理失败时的兜底响应）
+ * 通过图片的自然尺寸来判断
+ */
+function isTransparentPlaceholder(img: HTMLImageElement): boolean {
+  return img.naturalWidth <= 1 && img.naturalHeight <= 1;
 }
 
 /** 实时时钟 Hook */
@@ -204,73 +210,81 @@ export default function Home() {
 
   /**
    * 渲染图标：优先级依次为
-   * 1. URL 图片（以 http 开头）
+   * 1. URL 图片（以 http / https / / / data: 开头）
    * 2. Lucide 图标名
-   * 3. 根据书签 URL 自动获取 favicon
+   * 3. 通过后端代理抓取 favicon（代理内部会尝试多个图标服务）
    * 4. 兜底使用 Globe 图标
    */
   const renderIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
-    // 1. URL 图片 (支持 http/https 开头或本地绝对路径 / 开头或 data: 格式)
+    // 1. URL 图片
     if (iconName && (iconName.startsWith('http://') || iconName.startsWith('https://') || iconName.startsWith('/') || iconName.startsWith('data:'))) {
+      const proxyFav = siteUrl ? getProxyFaviconUrl(siteUrl) : '';
       return (
         <img
           src={iconName}
           alt="icon"
           className={`${size} object-contain`}
           loading="lazy"
+          onLoad={(e) => {
+            // 检测代理返回的透明兜底 PNG，视为加载失败
+            if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }
+          }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             const retried = target.getAttribute('data-retried');
-            if (!retried && siteUrl) {
-              const fav = getFaviconUrl(siteUrl);
-              // 如果备选 favicon 与当前失败的 src 一样，避免死循环
-              if (fav && fav !== target.src) {
-                target.setAttribute('data-retried', 'true');
-                target.src = fav;
-                return;
-              }
+            if (!retried && proxyFav && proxyFav !== target.src) {
+              target.setAttribute('data-retried', 'true');
+              target.src = proxyFav;
+              return;
             }
-            // 失败达到上限或无备用源，彻底隐藏失败的 img 元素，显示默认背景
             target.style.display = 'none';
           }}
         />
       );
     }
 
-    // Lucide 图标
+    // 2. Lucide 图标
     const IconComponent = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[iconName];
     if (IconComponent) {
       return <IconComponent className={`${size} text-white/70`} />;
     }
 
-    // 尝试自动获取 favicon
+    // 3. 通过后端代理自动获取 favicon（代理内部会尝试 Google / DuckDuckGo / favicon.im 等）
     if (siteUrl) {
-    // 直接获取 favicon
-    const directFaviconUrl = `https://favicon.im/${new URL(siteUrl).hostname}`;
-    return (
-      <img
-        src={directFaviconUrl}
-        alt="icon"
-        className={`${size} object-contain rounded-sm`}
-        loading="lazy"
-        onError={(e) => {
-          // 若直接获取失败，使用后端代理尝试一次
-          const target = e.target as HTMLImageElement;
-          const retried = target.getAttribute('data-retried');
-          if (!retried) {
-            const proxyUrl = `/api/icon-proxy?url=${encodeURIComponent(directFaviconUrl)}`;
-            target.setAttribute('data-retried', 'true');
-            target.src = proxyUrl;
-            return;
-          }
-          // 再次失败则隐藏
-          target.style.display = 'none';
-        }}
-      />
-    );
+      const proxyUrl = getProxyFaviconUrl(siteUrl);
+      if (proxyUrl) {
+        return (
+          <img
+            src={proxyUrl}
+            alt="icon"
+            className={`${size} object-contain rounded-sm`}
+            loading="lazy"
+            onLoad={(e) => {
+              // 代理失败时返回透明 PNG，此时显示兜底 Globe
+              const img = e.target as HTMLImageElement;
+              if (isTransparentPlaceholder(img)) {
+                img.style.display = 'none';
+                // 在父容器插入 Globe SVG 兜底
+                const parent = img.parentElement;
+                if (parent && !parent.querySelector('.icon-fallback-globe')) {
+                  const globe = document.createElement('span');
+                  globe.className = `icon-fallback-globe ${size} flex items-center justify-center text-white/50`;
+                  globe.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${size}"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+                  parent.appendChild(globe);
+                }
+              }
+            }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        );
+      }
     }
 
-    // 兜底
+    // 4. 兜底
     return <Icons.Globe className={`${size} text-white/70`} />;
   };
 

@@ -469,15 +469,19 @@ export default function Bookmarks() {
     setIsBookmarkModalOpen(true);
   };
 
-  /** 获取 Favicon 链接 */
+  /** 获取 Favicon 链接（高优先）：通过后端代理，代理内部会依次尝试多个图标服务 */
   const getFaviconUrl = (url: string) => {
     try {
-      const domain = new URL(url).hostname;
-      return `https://favicon.im/${domain}`;
+      const hostname = new URL(url).hostname;
+      return `/api/icon-proxy?host=${encodeURIComponent(hostname)}`;
     } catch {
       return '';
     }
   };
+
+  /** 检测图片是否为 1x1 透明 PNG（代理失败时的兜底响应） */
+  const isTransparentPlaceholder = (img: HTMLImageElement) =>
+    img.naturalWidth <= 1 && img.naturalHeight <= 1;
 
   /** 渲染预览图标 */
   const renderItemIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
@@ -488,6 +492,11 @@ export default function Bookmarks() {
           src={iconName}
           className={`${size} object-contain`}
           alt="icon"
+          onLoad={(e) => {
+            if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }
+          }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             const retried = target.getAttribute('data-retried');
@@ -509,13 +518,18 @@ export default function Bookmarks() {
     const IconComponent = (Icons as any)[iconName];
     if (IconComponent) return <IconComponent className={size} />;
 
-    // 3. 自动 Favicon
+    // 3. 自动 Favicon（通过后端代理）
     if (siteUrl) {
       return (
         <img 
           src={getFaviconUrl(siteUrl)} 
           className={`${size} object-contain`} 
           alt="favicon" 
+          onLoad={(e) => {
+            if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }
+          }}
           onError={(e) => {
             (e.target as HTMLImageElement).style.display = 'none';
           }}

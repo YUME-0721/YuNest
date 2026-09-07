@@ -16,14 +16,19 @@ interface MatchedItem {
   categoryIcon?: string;
 }
 
-/** 辅助获取站点 Favicon */
+/** 辅助获取站点 Favicon：通过后端代理，代理内部会依次尝试 Google / DuckDuckGo / favicon.im */
 function getFaviconUrl(siteUrl: string): string {
   try {
-    const url = new URL(siteUrl);
-    return `https://favicon.im/${url.hostname}`;
+    const hostname = new URL(siteUrl).hostname;
+    return `/api/icon-proxy?host=${encodeURIComponent(hostname)}`;
   } catch {
     return '';
   }
+}
+
+/** 检测图片是否为 1x1 透明 PNG（代理失败时的兜底响应） */
+function isTransparentPlaceholder(img: HTMLImageElement): boolean {
+  return img.naturalWidth <= 1 && img.naturalHeight <= 1;
 }
 
 /** 渲染图标组件 */
@@ -44,6 +49,15 @@ const BookmarkIcon: React.FC<{ icon?: string; siteUrl?: string; className?: stri
         alt=""
         className={`${className} object-contain`}
         loading="lazy"
+        onLoad={(e) => {
+          if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
+            if (!useFaviconFallback && siteUrl) {
+              setUseFaviconFallback(true);
+            } else {
+              setImgError(true);
+            }
+          }
+        }}
         onError={() => {
           if (!useFaviconFallback && siteUrl) {
             setUseFaviconFallback(true);
@@ -73,6 +87,11 @@ const BookmarkIcon: React.FC<{ icon?: string; siteUrl?: string; className?: stri
           alt=""
           className={`${className} object-contain rounded-sm`}
           loading="lazy"
+          onLoad={(e) => {
+            if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
+              setImgError(true);
+            }
+          }}
           onError={() => setImgError(true)}
         />
       );
