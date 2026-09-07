@@ -19,7 +19,8 @@ function getFaviconUrl(siteUrl: string): string {
   try {
     const url = new URL(siteUrl);
     // 切换至境内外访问更稳定的图标抓取服务，解决 Google S2 壁垒问题
-    return `https://favicon.im/${url.hostname}`;
+    // 使用后端代理获取图标，避免跨域和网络限制
+    return `/api/icon-proxy?url=${encodeURIComponent(`https://favicon.im/${url.hostname}`)}`;
   } catch {
     return '';
   }
