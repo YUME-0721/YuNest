@@ -43,6 +43,7 @@ export async function onRequest({ request }: { request: Request }) {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=3600',
+        'Access-Control-Allow-Origin': '*',
       },
     });
   } catch (e) {
