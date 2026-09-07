@@ -245,22 +245,29 @@ export default function Home() {
 
     // 尝试自动获取 favicon
     if (siteUrl) {
-      const faviconUrl = getFaviconUrl(siteUrl);
-      if (faviconUrl) {
-        return (
-          <img
-            src={faviconUrl}
-            alt="icon"
-            className={`${size} object-contain rounded-sm`}
-            loading="lazy"
-            onError={(e) => {
-              // 失败后立即停止请求并隐藏
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
-          />
-        );
-      }
+    // 直接获取 favicon
+    const directFaviconUrl = `https://favicon.im/${new URL(siteUrl).hostname}`;
+    return (
+      <img
+        src={directFaviconUrl}
+        alt="icon"
+        className={`${size} object-contain rounded-sm`}
+        loading="lazy"
+        onError={(e) => {
+          // 若直接获取失败，使用后端代理尝试一次
+          const target = e.target as HTMLImageElement;
+          const retried = target.getAttribute('data-retried');
+          if (!retried) {
+            const proxyUrl = `/api/icon-proxy?url=${encodeURIComponent(directFaviconUrl)}`;
+            target.setAttribute('data-retried', 'true');
+            target.src = proxyUrl;
+            return;
+          }
+          // 再次失败则隐藏
+          target.style.display = 'none';
+        }}
+      />
+    );
     }
 
     // 兜底
