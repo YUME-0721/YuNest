@@ -10,7 +10,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { TRANSLATIONS } from '../i18n/translations.ts';
 import { WidgetRenderer } from '../components/widgets/WidgetRenderer.tsx';
-import { getFaviconProxyUrl, normalizeIconUrl, isTransparentPlaceholder } from '../lib/favicon.ts';
+import { getFaviconProxyUrl, normalizeIconUrl } from '../lib/favicon.ts';
+import { FaviconImg } from '../components/FaviconImg.tsx';
 
 
 /** 实时时钟 Hook */
@@ -191,49 +192,25 @@ export default function Home() {
 
   /**
    * 渲染图标
-   * 优先级：URL图片（规范化后走代理）→ Lucide图标 → 自动favicon代理 → Globe兜底
-   *
-   * 核心设计：所有外链图标均经过 normalizeIconUrl 转为代理 URL，
-   * 绝不直接请求 favicon.im 等被墙域名。
-   * 真实图片 URL（用户手动填写的）走直连，onError 时才降级到代理。
+   * URL图片/代理 → FaviconImg（队列控制并发、视口优先、缓存）
+   * Lucide 图标名 → 直接渲染
+   * 无 icon 字段 → FaviconImg 自动抓取
    */
   const renderIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
-    // 1. URL 图片
+    // 1. URL 图片（经代理）
     if (iconName && (
       iconName.startsWith('http://') || iconName.startsWith('https://') ||
       iconName.startsWith('/') || iconName.startsWith('data:')
     )) {
-      // 将已知被墙的图标服务 URL 直接转为代理，避免直连超时
       const src = normalizeIconUrl(iconName);
-      // 是否已经是代理 URL（规范化后 or 原本就是代理）
       const isProxyUrl = src.startsWith('/api/icon-proxy');
-      return (
-        <img
-          src={src}
-          alt="icon"
-          className={`${size} object-contain rounded-sm`}
-          loading="lazy"
-          onLoad={(e) => {
-            // 代理返回透明 PNG = 所有来源均失败，隐藏图片
-            if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
-              (e.target as HTMLImageElement).style.display = 'none';
-            }
-          }}
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            // 直连真实图片失败时，降级到代理（仅限非代理 URL 且未重试过）
-            if (!isProxyUrl && !target.getAttribute('data-retried') && siteUrl) {
-              const proxyUrl = getFaviconProxyUrl(siteUrl);
-              if (proxyUrl) {
-                target.setAttribute('data-retried', 'true');
-                target.src = proxyUrl;
-                return;
-              }
-            }
-            target.style.display = 'none';
-          }}
-        />
-      );
+      // 已是代理 URL：用 FaviconImg 控制并发
+      if (isProxyUrl) {
+        return <FaviconImg src={src} className={`${size} object-contain rounded-sm`} fallbackClassName={`${size} text-white/50`} />;
+      }
+      // 真实图片 URL：直连 + onError 降级到代理
+      const fallbackProxySrc = siteUrl ? getFaviconProxyUrl(siteUrl) : '';
+      return <FaviconImg src={src} fallbackSrc={fallbackProxySrc || undefined} className={`${size} object-contain rounded-sm`} fallbackClassName={`${size} text-white/50`} />;
     }
 
     // 2. Lucide 图标名
@@ -242,24 +219,11 @@ export default function Home() {
       return <IconComponent className={`${size} text-white/70`} />;
     }
 
-    // 3. 无图标字段时，根据 siteUrl 自动走代理获取 favicon
+    // 3. 无 icon 字段：由 FaviconImg 自动护护抓取
     if (siteUrl) {
       const proxyUrl = getFaviconProxyUrl(siteUrl);
       if (proxyUrl) {
-        return (
-          <img
-            src={proxyUrl}
-            alt="icon"
-            className={`${size} object-contain rounded-sm`}
-            loading="lazy"
-            onLoad={(e) => {
-              if (isTransparentPlaceholder(e.target as HTMLImageElement)) {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }
-            }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
-        );
+        return <FaviconImg src={proxyUrl} className={`${size} object-contain rounded-sm`} fallbackClassName={`${size} text-white/50`} />;
       }
     }
 
