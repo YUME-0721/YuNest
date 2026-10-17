@@ -9,7 +9,7 @@ export interface Bookmark {
   id: string;
   title: string;
   url: string;
-  lanUrl?: string; // 内网地址
+  lanUrl?: string;
   icon: string;
   description?: string;
   size?: '1x1' | '1x2' | '2x1' | '2x2';
@@ -25,16 +25,10 @@ export interface Category {
   title: string;
   icon: string;
   bookmarks: Bookmark[];
-  layout?: 'card' | 'grid'; // 'card' 为展开卡片, 'grid' 为紧凑宫格
-  isHidden?: boolean; // 是否为隐藏分组
+  layout?: 'card' | 'grid';
+  isHidden?: boolean;
 }
 
-/**
- * NOTE: wallpaperType 决定壁纸来源逻辑：
- * - 'fixed': 使用固定的图片 URL
- * - 'api': 使用随机图 API，每次刷新加载不同图片
- * - 'local': 使用本地上传的图片（base64 存储）
- */
 export interface Settings {
   siteName: string;
   wallpaperType: 'fixed' | 'api' | 'local' | 'color';
@@ -42,19 +36,23 @@ export interface Settings {
   localWallpaper: string;
   backgroundColor: string;
   glassEffect: boolean;
-  glassEffectOpacity: number; // 0-100
+  glassEffectOpacity: number;
   darkMask: boolean;
-  darkMaskOpacity: number; // 0-100
+  darkMaskOpacity: number;
   searchEngine: string;
   githubToken?: string;
-  githubRepo?: string; // 格式: owner/repo
+  githubRepo?: string;
   language: 'zh-CN' | 'en-US';
-  timezone: string; // 时区 ID (如 Asia/Shanghai)
+  timezone: string;
   authRedirect?: boolean;
   autoSync?: boolean;
   githubSync?: boolean;
   widgetAlignment?: 'left' | 'center' | 'right';
-  widgetBackground?: boolean; // 小组件是否显示白色半透明背景
+  widgetBackground?: boolean;
+  /** 前台书签卡片高度（px，60-200） */
+  cardHeight?: number;
+  /** 前台书签卡片宽度（px，120-400） */
+  cardWidth?: number;
 }
 
 export interface AppState {
@@ -64,27 +62,11 @@ export interface AppState {
   updatedAt: number;
 }
 
-
 /** 预设的搜索引擎列表 */
 export const PRESET_SEARCH_ENGINES = [
-  {
-    id: 'google',
-    name: 'Google',
-    url: 'https://www.google.com/search?q=',
-    icon: '/icons/google.svg',
-  },
-  {
-    id: 'bing',
-    name: 'Bing',
-    url: 'https://www.bing.com/search?q=',
-    icon: '/icons/bing.ico',
-  },
-  {
-    id: 'baidu',
-    name: 'Baidu',
-    url: 'https://www.baidu.com/s?wd=',
-    icon: '/icons/baidu.ico',
-  },
+  { id: 'google', name: 'Google', url: 'https://www.google.com/search?q=', icon: '/icons/google.svg' },
+  { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q=', icon: '/icons/bing.ico' },
+  { id: 'baidu', name: 'Baidu', url: 'https://www.baidu.com/s?wd=', icon: '/icons/baidu.ico' },
 ];
 
 /** 默认个性化设置 */
@@ -102,12 +84,15 @@ export const DEFAULT_SETTINGS: Settings = {
   githubToken: '',
   githubRepo: '',
   language: 'zh-CN',
-  timezone: '', // 默认为空，跟随系统
+  timezone: '',
   authRedirect: true,
   autoSync: true,
   githubSync: true,
   widgetAlignment: 'center',
   widgetBackground: false,
+  // ===== 前台卡片尺寸 =====
+  cardHeight: 80,
+  cardWidth: 240,
 };
 
 const defaultState: AppState = {
@@ -155,19 +140,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           const cWidgets = (c.bookmarks || []).filter((b: any) => b.itemType === 'widget');
           extractedWidgets.push(...cWidgets);
           return {
-            layout: 'card', 
-            isHidden: false, // 默认旧数据为公开
+            layout: 'card',
+            isHidden: false,
             ...c,
             bookmarks: (c.bookmarks || []).filter((b: any) => b.itemType !== 'widget')
           };
         });
 
-        // NOTE: 兼容旧版数据结构，自动补全新增字段
         return {
           ...defaultState,
           ...parsed,
-          settings: { 
-            ...defaultState.settings, 
+          settings: {
+            ...defaultState.settings,
             ...parsed.settings,
             githubToken: parsed.settings?.githubToken || '',
             githubRepo: parsed.settings?.githubRepo || ''
@@ -182,16 +166,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return defaultState;
   });
 
-  // 1. 自动同步逻辑：初始化与增量更新
   useEffect(() => {
     const initializeData = async () => {
       let currentUpdatedAt = state.updatedAt;
 
-      // 1. 先尝试加载内置默认数据 (用于初次部署或代码更新后的数据同步)
       try {
-        const res = await fetch(`/data/default_data.json?t=${Date.now()}`, { 
+        const res = await fetch(`/data/default_data.json?t=${Date.now()}`, {
           cache: 'no-store',
-          headers: { 
+          headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
@@ -200,8 +182,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         if (res.ok) {
           const defaultData = await res.json();
           const hasLocalData = localStorage.getItem('yunest_data');
-          
-          // 如果没有本地数据，或者内置数据的 updatedAt 比较新，则加载
+
           if (!hasLocalData || (defaultData.updatedAt && defaultData.updatedAt > currentUpdatedAt)) {
             console.log('YuNest: 加载项目内置默认数据 (发现更新或初次加载)');
             importData(defaultData);
@@ -212,17 +193,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         console.warn('Failed to load default_data.json', e);
       }
 
-      // 2. 如果开启了同步，尝试从云端拉取更新 (优先通过服务端加密代理 /api/sync)
       if (state.settings.githubSync && state.settings.autoSync) {
         let synced = false;
 
-        // 2.1 尝试通过边缘代理 /api/sync 拉取
         try {
           const authPassword = sessionStorage.getItem('yunest_admin_pwd') || '';
           const proxyRes = await fetch('/api/sync', {
-            headers: {
-              'x-auth-password': authPassword,
-            },
+            headers: { 'x-auth-password': authPassword },
           });
 
           if (proxyRes.ok) {
@@ -236,18 +213,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               synced = true;
             }
           }
-        } catch (proxyErr) {
-          // 代理不可用或未配置，尝试降级
-        }
+        } catch (proxyErr) { /* 忽略 */ }
 
-        // 2.2 降级方案：客户端直接调用 GitHub API (使用本地输入的 Token)
         if (!synced && state.settings.githubToken && state.settings.githubRepo) {
           try {
             const token = state.settings.githubToken;
             const repo = state.settings.githubRepo;
             const path = 'data/yunest_data.json';
-            
-            // GitHub API 不允许自定义 Cache-Control 等 Header，否则会触发 CORS 预检失败
+
             const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
               cache: 'no-store',
               headers: {
@@ -260,7 +233,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               const data = await response.json();
               const content = decodeURIComponent(escape(atob(data.content)));
               const remoteData = JSON.parse(content) as AppState;
-              
+
               if (remoteData.updatedAt && remoteData.updatedAt > currentUpdatedAt) {
                 console.log('YuNest: (客户端直连) 发现云端有更新，正在同步...');
                 remoteData.settings.githubToken = token;
@@ -277,13 +250,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initializeData().finally(() => {
-      setIsReady(true);
-    });
+    initializeData().finally(() => setIsReady(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.settings.githubSync, state.settings.autoSync]);
 
-  // 2. 状态持久化到本地（放在同步逻辑后，避免初次加载时过早写入空数据）
   useEffect(() => {
     if (isReady) {
       localStorage.setItem('yunest_data', JSON.stringify(state));
@@ -291,10 +261,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [state, isReady]);
 
   const updateSettings = useCallback((newSettings: Partial<Settings>) => {
-    setState((prev) => ({ 
-      ...prev, 
+    setState((prev) => ({
+      ...prev,
       settings: { ...prev.settings, ...newSettings },
-      updatedAt: Date.now() 
+      updatedAt: Date.now()
     }));
   }, []);
 
@@ -322,7 +292,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  /** 分组排序——用于拖拽调整分组顺序 */
   const reorderCategories = useCallback((fromIndex: number, toIndex: number) => {
     setState((prev) => {
       const newCategories = [...prev.categories];
@@ -332,24 +301,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  /** 分组批量排序——用于流畅拖动吸附重排 */
   const setCategoriesOrder = useCallback((newCategories: Category[]) => {
-    setState((prev) => ({
-      ...prev,
-      categories: newCategories,
-      updatedAt: Date.now()
-    }));
+    setState((prev) => ({ ...prev, categories: newCategories, updatedAt: Date.now() }));
   }, []);
 
   const addBookmark = useCallback((categoryId: string, bookmark: Omit<Bookmark, 'id'>) => {
     setState((prev) => ({
       ...prev,
-      categories: prev.categories.map((c) => {
-        if (c.id === categoryId) {
-          return { ...c, bookmarks: [...c.bookmarks, { ...bookmark, id: `b_${Date.now()}` }] };
-        }
-        return c;
-      }),
+      categories: prev.categories.map((c) =>
+        c.id === categoryId
+          ? { ...c, bookmarks: [...c.bookmarks, { ...bookmark, id: `b_${Date.now()}` }] }
+          : c
+      ),
       updatedAt: Date.now()
     }));
   }, []);
@@ -357,15 +320,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const updateBookmark = useCallback((categoryId: string, bookmarkId: string, bookmark: Partial<Bookmark>) => {
     setState((prev) => ({
       ...prev,
-      categories: prev.categories.map((c) => {
-        if (c.id === categoryId) {
-          return {
-            ...c,
-            bookmarks: c.bookmarks.map((b) => (b.id === bookmarkId ? { ...b, ...bookmark } : b)),
-          };
-        }
-        return c;
-      }),
+      categories: prev.categories.map((c) =>
+        c.id === categoryId
+          ? { ...c, bookmarks: c.bookmarks.map((b) => (b.id === bookmarkId ? { ...b, ...bookmark } : b)) }
+          : c
+      ),
       updatedAt: Date.now()
     }));
   }, []);
@@ -373,17 +332,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const deleteBookmark = useCallback((categoryId: string, bookmarkId: string) => {
     setState((prev) => ({
       ...prev,
-      categories: prev.categories.map((c) => {
-        if (c.id === categoryId) {
-          return { ...c, bookmarks: c.bookmarks.filter((b) => b.id !== bookmarkId) };
-        }
-        return c;
-      }),
+      categories: prev.categories.map((c) =>
+        c.id === categoryId ? { ...c, bookmarks: c.bookmarks.filter((b) => b.id !== bookmarkId) } : c
+      ),
       updatedAt: Date.now()
     }));
   }, []);
 
-  /** 书签排序——用于拖拽调整站点顺序 */
   const reorderBookmarks = useCallback((categoryId: string, fromIndex: number, toIndex: number) => {
     setState((prev) => ({
       ...prev,
@@ -400,16 +355,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
-  /** 书签批量排序——用于流畅拖动吸附重排 */
   const setBookmarksOrder = useCallback((categoryId: string, newBookmarks: Bookmark[]) => {
     setState((prev) => ({
       ...prev,
-      categories: prev.categories.map((c) => {
-        if (c.id === categoryId) {
-          return { ...c, bookmarks: newBookmarks };
-        }
-        return c;
-      }),
+      categories: prev.categories.map((c) => (c.id === categoryId ? { ...c, bookmarks: newBookmarks } : c)),
       updatedAt: Date.now()
     }));
   }, []);
@@ -452,7 +401,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       ...defaultState,
       ...data,
       settings: { ...defaultState.settings, ...data.settings },
-      // 如果导入的数据没有 updatedAt，则设为当前时间
       updatedAt: data.updatedAt || Date.now()
     }));
   }, []);
@@ -472,60 +420,36 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const repo = repoOverride || state.settings.githubRepo;
     const authPassword = sessionStorage.getItem('yunest_admin_pwd') || (import.meta as any).env.ADMIN_PASSWORD || 'admin1234';
 
-    // 1. 优先尝试通过服务端边缘代理 /api/sync 推送 (安全免 Token 暴露)
     try {
       const proxyRes = await fetch('/api/sync', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-password': authPassword,
-        },
+        headers: { 'Content-Type': 'application/json', 'x-auth-password': authPassword },
         body: JSON.stringify(state),
       });
-
-      if (proxyRes.ok) {
-        return true;
-      }
-
-      // 如果是服务端未配置或者 404 (非边缘部署环境)，转入客户端降级直连
+      if (proxyRes.ok) return true;
       const errData = await proxyRes.json().catch(() => ({}));
       if (errData.code !== 'NOT_CONFIGURED' && proxyRes.status !== 404 && proxyRes.status !== 405) {
         throw new Error(errData.error || '云端代理同步失败');
       }
     } catch (e: any) {
-      if (e.message && !e.message.includes('fetch') && !e.message.includes('NOT_CONFIGURED')) {
-        throw e;
-      }
+      if (e.message && !e.message.includes('fetch') && !e.message.includes('NOT_CONFIGURED')) throw e;
     }
 
-    // 2. 降级方案：客户端直接调用 GitHub API
-    if (!token || !repo) {
-      throw new Error('未检测到云端代理配置，请在下方手动填写 GitHub Token 和仓库名');
-    }
+    if (!token || !repo) throw new Error('未检测到云端代理配置，请在下方手动填写 GitHub Token 和仓库名');
 
     const path = 'data/yunest_data.json';
-    const branch = 'main'; 
-    const stateToSave = { 
-      ...state, 
-      settings: { ...state.settings, githubToken: '', githubRepo: '' } 
-    };
+    const branch = 'main';
+    const stateToSave = { ...state, settings: { ...state.settings, githubToken: '', githubRepo: '' } };
 
-    // 2.1 获取现有文件的 SHA
     let sha = '';
     const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github+json'
-      }
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
     });
-    
+
     let actualBranch = branch;
     if (!getRes.ok && getRes.status === 404) {
       const masterRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=master`, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json'
-        }
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
       });
       if (masterRes.ok) {
         const existingMaster = await masterRes.json();
@@ -537,7 +461,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       sha = existing.sha;
     }
 
-    // 2.2 执行 PUT 请求
     const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: {
@@ -565,14 +488,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const repo = repoOverride || state.settings.githubRepo;
     const authPassword = sessionStorage.getItem('yunest_admin_pwd') || (import.meta as any).env.ADMIN_PASSWORD || 'admin1234';
 
-    // 1. 优先尝试从服务端边缘代理 /api/sync 拉取
     try {
       const proxyRes = await fetch('/api/sync', {
-        headers: {
-          'x-auth-password': authPassword,
-        },
+        headers: { 'x-auth-password': authPassword },
       });
-
       if (proxyRes.ok) {
         const result = await proxyRes.json();
         if (result.code === 'FILE_NOT_FOUND') {
@@ -581,47 +500,32 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         importData(result as AppState);
         return true;
       }
-
       const errData = await proxyRes.json().catch(() => ({}));
       if (errData.code !== 'NOT_CONFIGURED' && proxyRes.status !== 404 && proxyRes.status !== 405) {
         throw new Error(errData.error || '云端代理拉取失败');
       }
     } catch (e: any) {
-      if (e.message && !e.message.includes('fetch') && !e.message.includes('NOT_CONFIGURED')) {
-        throw e;
-      }
+      if (e.message && !e.message.includes('fetch') && !e.message.includes('NOT_CONFIGURED')) throw e;
     }
 
-    // 2. 降级方案：客户端直接调用 GitHub API
-    if (!token || !repo) {
-      throw new Error('未检测到云端代理配置，请在下方手动填写 GitHub Token 和仓库名');
-    }
+    if (!token || !repo) throw new Error('未检测到云端代理配置，请在下方手动填写 GitHub Token 和仓库名');
 
     const path = 'data/yunest_data.json';
     const oldPath = 'yunest_data.json';
-    
+
     let response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github+json',
-      }
+      headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
     });
 
     if (!response.ok && response.status === 404) {
       response = await fetch(`https://api.github.com/repos/${repo}/contents/${oldPath}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json',
-        }
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
       });
     }
 
     if (!response.ok && response.status === 404) {
       response = await fetch(`https://api.github.com/repos/${repo}/contents/${oldPath}?ref=data`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json',
-        }
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
       });
     }
 
@@ -633,11 +537,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const data = await response.json();
     const content = decodeURIComponent(escape(atob(data.content)));
     const parsedData = JSON.parse(content);
-    
     if (!parsedData.settings) parsedData.settings = {};
     parsedData.settings.githubToken = token;
     parsedData.settings.githubRepo = repo;
-    
     importData(parsedData);
     return true;
   }, [importData, state.settings.githubToken, state.settings.githubRepo]);

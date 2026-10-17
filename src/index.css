@@ -1,18 +1,21 @@
 @import "tailwindcss";
 
-/* NOTE: 全局字体和基础样式设定 */
+/* ========================================= */
+/* === 全局变量 & 基础样式 ==================== */
+/* ========================================= */
+
 :root {
   --color-accent: #ec5b13;
   --color-accent-light: #ff7a3d;
   --color-accent-dark: #c94a0e;
-  
-  /* NOTE: 玻璃拟态基础变量 - 由 JS 动态控制 */
+
+  /* 玻璃拟态基础变量 - 由 JS 动态控制 */
   --glass-blur: 20px;
   --glass-opacity: 0.45;
   --glass-bg: rgba(0, 0, 0, var(--glass-opacity));
   --glass-border: rgba(255, 255, 255, 0.15);
-  
-  /* NOTE: Widget Base Size */
+
+  /* Widget Base Size */
   --widget-size: calc(50vw - 20px);
   --widget-gap: 12px;
 }
@@ -24,8 +27,6 @@
   }
 }
 
-/* NOTE: Tailwind v4 preflight 已包含合理的 CSS 重置，此处不再重复设置 margin/padding */
-
 html {
   scroll-behavior: smooth;
 }
@@ -36,66 +37,115 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* NOTE: 自定义滚动条——极简风格，与深色主题匹配 */
+/* 首页整体铺满，避免双重滚动条 */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ========================================= */
+/* === 滚动条美化 ============================ */
+/* ========================================= */
+
+/* 全局滚动条（深色主题） */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* NOTE: 入场动画关键帧 */
+/* 主内容区滚动条 */
+main::-webkit-scrollbar {
+  width: 6px;
+}
+main::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 侧边栏内部滚动条隐藏（分类列表滚动时不显示滚动条） */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* ========================================= */
+/* === 后台分类标签栏：横向滚动条美化 ========= */
+/* ========================================= */
+
+/*
+ * NOTE: 用于 Bookmarks.tsx 分类标签栏的横向滚动区
+ *       - 加粗到 10px，橙色主题色，一眼可见
+ *       - 有浅灰轨道，让滚动范围清晰
+ *       - 悬浮时加深，提示可拖动
+ */
+
+.admin-scrollbar {
+  /* Firefox 滚动条 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 91, 19, 0.6) rgba(0, 0, 0, 0.06);
+}
+
+/* Chrome / Edge / Safari 滚动条 */
+.admin-scrollbar::-webkit-scrollbar {
+  height: 10px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
+  margin: 0 4px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(236, 91, 19, 0.55);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 91, 19, 0.85);
+  background-clip: padding-box;
+}
+
+/* ========================================= */
+/* === 入场动画关键帧 ======================== */
+/* ========================================= */
+
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-in-scale {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(236, 91, 19, 0.0);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(236, 91, 19, 0.15);
-  }
+  0%, 100% { box-shadow: 0 0 20px rgba(236, 91, 19, 0.0); }
+  50% { box-shadow: 0 0 40px rgba(236, 91, 19, 0.15); }
 }
 
 @keyframes bg-drift {
@@ -122,54 +172,31 @@ body {
   20%, 40%, 60%, 80% { transform: translateX(4px); }
 }
 
-/* NOTE: 工具类动画 */
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out both;
-}
-
-.animate-fade-in-scale {
-  animation: fade-in-scale 0.5s ease-out both;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.7s ease-out both;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.animate-bg-drift {
-  animation: bg-drift 30s ease-in-out infinite;
-}
-
-.animate-bg-fade-in {
-  animation: bg-fade-in 1.5s ease-out forwards;
-}
-
-.animate-shake {
-  animation: shake 0.4s ease-in-out;
-}
-
-.animate-spin-slow {
-  animation: spin 3s linear infinite;
-}
-
-.animate-fade {
-  animation: fade 0.3s ease-out both;
-}
-
 @keyframes loading-bar {
   0% { transform: translateX(-100%); }
   50% { transform: translateX(0); }
   100% { transform: translateX(100%); }
 }
 
-.animate-loading-bar {
-  animation: loading-bar 1.5s infinite ease-in-out;
-}
+/* ========================================= */
+/* === 工具类动画 ============================ */
+/* ========================================= */
 
-/* NOTE: 玻璃拟态效果 - 增强对比度 */
+.animate-fade-in { animation: fade-in 0.6s ease-out both; }
+.animate-fade-in-scale { animation: fade-in-scale 0.5s ease-out both; }
+.animate-slide-up { animation: slide-up 0.7s ease-out both; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-bg-drift { animation: bg-drift 30s ease-in-out infinite; }
+.animate-bg-fade-in { animation: bg-fade-in 1.5s ease-out forwards; }
+.animate-shake { animation: shake 0.4s ease-in-out; }
+.animate-spin-slow { animation: spin 3s linear infinite; }
+.animate-fade { animation: fade 0.3s ease-out both; }
+.animate-loading-bar { animation: loading-bar 1.5s infinite ease-in-out; }
+
+/* ========================================= */
+/* === 玻璃拟态效果 ========================== */
+/* ========================================= */
+
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -185,7 +212,6 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-/* 针对弹窗等关键交互层，提供更具深度的防穿透毛玻璃 */
 .glass-modal {
   background: rgba(18, 18, 24, 0.78);
   backdrop-filter: blur(32px) saturate(180%);
@@ -194,7 +220,10 @@ body {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-/* NOTE: 搜索栏聚焦光晕效果 */
+/* ========================================= */
+/* === 搜索栏聚焦光晕 ======================== */
+/* ========================================= */
+
 .search-glow:focus-within {
   box-shadow:
     0 0 0 1px rgba(236, 91, 19, 0.3),
@@ -202,16 +231,10 @@ body {
     0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
-/* NOTE: 后台管理页面滚动条样式覆盖 */
-.admin-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-}
+/* ========================================= */
+/* === Widget 响应式尺寸 ==================== */
+/* ========================================= */
 
-.admin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-/* NOTE: Widget responsive sizing for Flexbox layout */
 .widget-width-1x {
   width: var(--widget-size);
 }
@@ -241,8 +264,46 @@ body {
   height: calc(2 * var(--widget-size) + var(--widget-gap));
 }
 
-/* NOTE: 隐藏 Edge 等浏览器默认的密码明文切换和清除按钮，避免与自定义眼睛图标重叠 */
+/* ========================================= */
+/* === 表单细节 & 浏览器兼容 ================= */
+/* ========================================= */
+
+/* 隐藏 Edge 等浏览器默认的密码明文切换和清除按钮 */
 input::-ms-reveal,
 input::-ms-clear {
   display: none;
+}
+
+/* ========================================= */
+/* === 首页侧边栏专用样式 ==================== */
+/* ========================================= */
+
+/*
+ * 桌面端侧边栏玻璃拟态背景
+ * NOTE: Home.tsx 里侧边栏用的是 `hidden md:flex fixed ...` 内联类名，
+ *       所以这里用属性选择器匹配，避免影响后台布局。
+ */
+aside.hidden.md\:flex {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 移动端抽屉内的滚动条隐藏 */
+aside.md\:hidden .sidebar-scroll::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* ========================================= */
+/* === 后台管理页：分类标签自动换行 =========== */
+/* ========================================= */
+
+/*
+ * 分类标签数量过多时，允许换行显示（兜底，防止极端情况）。
+ * NOTE: 当前 Bookmarks.tsx 已改为横向滚动方案，此规则作为兼容保留。
+ */
+.flex-wrap > * {
+  flex-shrink: 0;
 }

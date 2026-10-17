@@ -52,7 +52,7 @@ export const TRANSLATIONS = {
     appearanceSettings: '外观设置',
     glassEffectLabel: '玻璃拟态效果',
     glassEffectDesc: '磨砂玻璃般的模糊透明质感',
-     darkMaskLabel: '背景暗色遮罩',
+    darkMaskLabel: '背景暗色遮罩',
     darkMaskDesc: '加深上下边缘阴影，显著增强文字识别度',
     glassOpacityLabel: '玻璃拟态强度',
     maskOpacityLabel: '暗色遮罩强度',
@@ -66,6 +66,11 @@ export const TRANSLATIONS = {
     alignLeft: '左对齐',
     alignCenter: '居中对齐',
     alignRight: '右对齐',
+
+    // ===== 卡片尺寸 & 每行数量 =====
+    cardHeightLabel: '卡片高度',
+    cardWidthLabel: '卡片宽度',
+    cardSizeDesc: '控制前台书签卡片的显示尺寸（像素）',
 
     // 管理标签
     manageTagsTitle: '管理标签',
@@ -257,6 +262,11 @@ export const TRANSLATIONS = {
     alignLeft: 'Left Align',
     alignCenter: 'Center Align',
     alignRight: 'Right Align',
+
+    // ===== Card Size =====
+    cardHeightLabel: 'Card Height',
+    cardWidthLabel: 'Card Width',
+    cardSizeDesc: 'Control the display size of bookmark cards on the front page (px)',
 
     // Bookmarks
     manageTagsTitle: 'Manage Bookmarks',

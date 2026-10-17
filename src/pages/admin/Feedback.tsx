@@ -58,7 +58,6 @@ export default function Feedback() {
             </div>
             <div>
               <h4 className="text-2xl font-black text-slate-800 tracking-tight">{AUTHOR_INFO.name}</h4>
-
             </div>
             <div className="w-full pt-6 space-y-3">
               <button
@@ -80,7 +79,6 @@ export default function Feedback() {
                   {copied ? t.copied : AUTHOR_INFO.email}
                 </span>
               </button>
-
             </div>
           </div>
         </section>

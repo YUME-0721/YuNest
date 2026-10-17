@@ -1,6 +1,5 @@
 /**
  * 个性化设置页面
- * NOTE: 管理网站名称、搜索引擎、壁纸配置（固定/API/本地上传）、视觉效果
  */
 
 import React, { useState, useRef } from 'react';
@@ -77,7 +76,6 @@ export default function Settings() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // NOTE: 限制文件大小，localStorage 空间有限
     if (file.size > 5 * 1024 * 1024) {
       alert(t.uploadLimit);
       return;
@@ -92,7 +90,6 @@ export default function Settings() {
     reader.readAsDataURL(file);
   };
 
-  /** 刷新壁纸预览（对 API 类型附加时间戳） */
   const refreshPreview = () => {
     if (localSettings.wallpaperType === 'api') {
       const url = localSettings.wallpaperUrl || 'https://pic.yumekai.top/pic?img=ua';
@@ -169,11 +166,9 @@ export default function Settings() {
                   </button>
                 ))}
 
-                {/* 其他搜索引擎 */}
                 <button
                   type="button"
                   onClick={() => {
-                    // 如果当前选中的是预设，点击“其他”时清空输入，强制显示自定义框
                     if (PRESET_SEARCH_ENGINES.some(e => e.url === localSettings.searchEngine)) {
                       setLocalSettings({ ...localSettings, searchEngine: '' });
                     }
@@ -224,7 +219,6 @@ export default function Settings() {
                   >
                     <HelpCircle className="w-3.5 h-3.5" />
                   </div>
-                  {/* Tooltip 气泡 */}
                   <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover:flex items-center px-3 py-1.5 bg-slate-900/95 text-white text-xs font-medium rounded-xl w-64 sm:w-72 shadow-2xl backdrop-blur-md z-50 pointer-events-none transition-all leading-relaxed border border-white/10">
                     {t.authRedirectDesc}
                   </div>
@@ -269,6 +263,78 @@ export default function Settings() {
                 <option value="en-US">English (United States)</option>
               </select>
             </div>
+
+            {/* ===== 首页布局：卡片高度 & 卡片宽度 ===== */}
+            <div className="pt-6 mt-2 border-t border-slate-100 space-y-6">
+              {/* 卡片高度 */}
+              <div className="flex flex-col gap-3">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-slate-400" />
+                  {t.cardHeightLabel}
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min={60}
+                    max={200}
+                    step={5}
+                    value={localSettings.cardHeight || 80}
+                    onChange={(e) => setLocalSettings({ ...localSettings, cardHeight: Number(e.target.value) } as any)}
+                    className="flex-1 accent-[#ec5b13] cursor-pointer"
+                  />
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min={60}
+                      max={200}
+                      step={5}
+                      value={localSettings.cardHeight || 80}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setLocalSettings({ ...localSettings, cardHeight: isNaN(v) ? 80 : Math.min(200, Math.max(60, v)) } as any);
+                      }}
+                      className="w-20 text-center text-base font-mono font-bold text-[#ec5b13] bg-[#ec5b13]/10 rounded-lg py-1 outline-none border border-[#ec5b13]/20 focus:border-[#ec5b13]"
+                    />
+                    <span className="text-xs text-slate-400 font-medium">px</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 卡片宽度 */}
+              <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-slate-400" />
+                  {t.cardWidthLabel}
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min={120}
+                    max={400}
+                    step={10}
+                    value={localSettings.cardWidth || 240}
+                    onChange={(e) => setLocalSettings({ ...localSettings, cardWidth: Number(e.target.value) } as any)}
+                    className="flex-1 accent-[#ec5b13] cursor-pointer"
+                  />
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min={120}
+                      max={400}
+                      step={10}
+                      value={localSettings.cardWidth || 240}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setLocalSettings({ ...localSettings, cardWidth: isNaN(v) ? 240 : Math.min(400, Math.max(120, v)) } as any);
+                      }}
+                      className="w-20 text-center text-base font-mono font-bold text-[#ec5b13] bg-[#ec5b13]/10 rounded-lg py-1 outline-none border border-[#ec5b13]/20 focus:border-[#ec5b13]"
+                    />
+                    <span className="text-xs text-slate-400 font-medium">px</span>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-400">{t.cardSizeDesc}</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -280,7 +346,6 @@ export default function Settings() {
           </div>
           <div className="grid gap-6 bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm min-w-0 overflow-hidden">
 
-            {/* 对齐方式 */}
             <div className="flex flex-col gap-3">
               <label className="text-sm font-semibold flex items-center gap-2">
                 <LayoutGrid className="w-4 h-4 text-slate-400" />
@@ -297,8 +362,6 @@ export default function Settings() {
               </select>
             </div>
 
-
-            {/* 时区 */}
             <div className="flex flex-col gap-3 pt-4 border-t border-slate-100">
               <label className="text-sm font-semibold flex items-center gap-2">
                 <Globe className="w-4 h-4 text-slate-400" />
@@ -325,7 +388,6 @@ export default function Settings() {
               <p className="text-xs text-slate-400">{t.timezoneDesc}</p>
             </div>
 
-            {/* 小组件管理 */}
             <div className="pt-4 border-t border-slate-100">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm font-semibold flex items-center gap-2">

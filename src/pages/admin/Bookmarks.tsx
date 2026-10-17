@@ -1,6 +1,8 @@
 /**
  * 书签目录管理页面
  * NOTE: 支持分组的 CRUD 和站点的 CRUD，包含分类和书签的模态框编辑
+ *       分类标签栏采用【横向滚动】方案，保留拖拽排序功能；
+ *       "新增分组" 按钮固定在分类栏最左侧，不随标签滚动
  */
 
 import React, { useState, useRef } from 'react';
@@ -470,8 +472,6 @@ export default function Bookmarks() {
     setIsBookmarkModalOpen(true);
   };
 
-
-
   /** 渲染预览图标（统一走代理） */
   const renderItemIcon = (iconName: string, siteUrl?: string, size: string = 'w-5 h-5') => {
     // 1. URL 图片（先规范化已知被墙 URL）
@@ -530,7 +530,7 @@ export default function Bookmarks() {
   };
 
   return (
-    <div className="p-6 sm:p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-6 sm:p-8 max-w-6xl mx-auto space-y-8 min-w-0">
       {/* 页面标题 */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
@@ -553,16 +553,13 @@ export default function Bookmarks() {
         </div>
       </div>
 
-      {/* 分类标签页（长按/拖拽吸附排序） */}
+      {/* 
+        分类标签栏 + 新增分组按钮
+        布局：[ 新增分组 ] | [ 分类标签横向滚动区 ]
+      */}
       {state.categories.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pt-3 pb-3 px-1.5 -my-2 scrollbar-none">
-          <CategoryTabsReorderList
-            categories={state.categories}
-            activeCategory={activeCategory}
-            onSelectCategory={setActiveCategory}
-            onSaveOrder={setCategoriesOrder}
-          />
-
+        <div className="flex items-center gap-3 pt-3 pb-4 min-w-0">
+          {/* 左侧：固定的"新增分组"按钮 */}
           <button
             onClick={() => {
               setEditingCategory(null);
@@ -574,6 +571,19 @@ export default function Bookmarks() {
             <Plus className="w-4 h-4" />
             {t.addCategory}
           </button>
+
+          {/* 分隔线 */}
+          <div className="h-8 w-px bg-slate-200 flex-shrink-0" />
+
+          {/* 右侧：分类标签横向滚动区（底部预留滚动条空间） */}
+          <div className="flex-1 min-w-0 overflow-x-auto admin-scrollbar pb-3">
+            <CategoryTabsReorderList
+              categories={state.categories}
+              activeCategory={activeCategory}
+              onSelectCategory={setActiveCategory}
+              onSaveOrder={setCategoriesOrder}
+            />
+          </div>
         </div>
       )}
 

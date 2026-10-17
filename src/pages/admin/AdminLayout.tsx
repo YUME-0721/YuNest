@@ -20,7 +20,7 @@ export default function AdminLayout() {
     { to: '/admin/bookmarks', icon: Tags, label: t.navBookmarks },
     { to: '/admin/wallpaper', icon: ImageIcon, label: t.navWallpaper },
     { to: '/admin/backup', icon: RefreshCw, label: t.navBackup },
-    { to: '/admin/feedback', icon: t.navFeedback.includes('反馈') ? MessageCircle : MessageCircle, label: t.navFeedback },
+    { to: '/admin/feedback', icon: MessageCircle, label: t.navFeedback },
   ];
 
   // 简单的路由守卫
