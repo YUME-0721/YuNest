@@ -89,8 +89,23 @@ export default function Home() {
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, bookmark: any } | null>(null);
 
   const [activeSidebarId, setActiveSidebarId] = useState<string>('all');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('yunest_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // 持久化侧边栏折叠状态
+  useEffect(() => {
+    try {
+      localStorage.setItem('yunest_sidebar_collapsed', String(isCollapsed));
+    } catch {
+      // ignore
+    }
+  }, [isCollapsed]);
 
   // ====== 前台卡片配置（长宽独立，移动端自动适配） ======
   const baseCardHeight = settings.cardHeight || 80;

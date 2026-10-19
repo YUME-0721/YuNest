@@ -558,22 +558,24 @@ export default function Bookmarks() {
         布局：[ 新增分组 ] | [ 分类标签横向滚动区 ]
       */}
       {state.categories.length > 0 && (
-        <div className="flex items-center gap-3 pt-3 pb-4 min-w-0">
-          {/* 左侧：固定的"新增分组"按钮 */}
-          <button
-            onClick={() => {
-              setEditingCategory(null);
-              setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
-              setIsCategoryModalOpen(true);
-            }}
-            className="h-10 box-border px-3.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-[#ec5b13] hover:bg-[#ec5b13]/5 border border-dashed border-slate-300 hover:border-[#ec5b13] inline-flex items-center gap-1.5 transition-all whitespace-nowrap flex-shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            {t.addCategory}
-          </button>
+        <div className="flex items-start gap-3 pt-3 pb-4 min-w-0">
+          {/* 左侧：固定的"新增分组"按钮与分隔线 */}
+          <div className="flex items-center gap-3 h-10 flex-shrink-0">
+            <button
+              onClick={() => {
+                setEditingCategory(null);
+                setCategoryForm({ title: '', icon: 'Folder', layout: 'card', isHidden: false });
+                setIsCategoryModalOpen(true);
+              }}
+              className="h-10 box-border px-3.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-[#ec5b13] hover:bg-[#ec5b13]/5 border-2 border-dashed border-slate-200 hover:border-[#ec5b13] inline-flex items-center gap-1.5 transition-all whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              {t.addCategory}
+            </button>
 
-          {/* 分隔线 */}
-          <div className="h-8 w-px bg-slate-200 flex-shrink-0" />
+            {/* 分隔线 */}
+            <div className="h-6 w-px bg-slate-200" />
+          </div>
 
           {/* 右侧：分类标签横向滚动区（底部预留滚动条空间） */}
           <div className="flex-1 min-w-0 overflow-x-auto admin-scrollbar pb-3">

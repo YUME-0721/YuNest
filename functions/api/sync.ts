@@ -5,6 +5,6 @@
 
 import { handleSyncRequest } from '../../server/syncCore.ts';
 
-export const onRequest: PagesFunction = async (context) => {
+export const onRequest = async (context: { request: Request; env: unknown }) => {
   return handleSyncRequest(context.request, context.env as any);
 };
