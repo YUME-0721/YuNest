@@ -53,6 +53,8 @@ export interface Settings {
   cardHeight?: number;
   /** 前台书签卡片宽度（px，120-400） */
   cardWidth?: number;
+  /** 侧边栏位置（左侧或右侧） */
+  sidebarPosition?: 'left' | 'right';
 }
 
 export interface AppState {
@@ -93,6 +95,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // ===== 前台卡片尺寸 =====
   cardHeight: 80,
   cardWidth: 240,
+  sidebarPosition: 'left',
 };
 
 const defaultState: AppState = {

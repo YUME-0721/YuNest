@@ -108,6 +108,7 @@ export default function Home() {
   }, [isCollapsed]);
 
   // ====== 前台卡片配置（长宽独立，移动端自动适配） ======
+  const isSidebarRight = settings.sidebarPosition === 'right';
   const baseCardHeight = settings.cardHeight || 80;
   const baseCardWidth = settings.cardWidth || 240;
 
@@ -331,10 +332,10 @@ export default function Home() {
             className="flex items-center justify-center w-full py-2.5 px-3 mb-3 rounded-2xl text-white/40 hover:text-white hover:bg-white/5 transition-all duration-300 cursor-pointer border-0 bg-transparent flex-shrink-0"
           >
             {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
+              isSidebarRight ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
             ) : (
               <>
-                <ChevronLeft className="w-4 h-4" />
+                {isSidebarRight ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
                 <span className="ml-2 text-[13px] font-medium">收起</span>
               </>
             )}
@@ -381,7 +382,7 @@ export default function Home() {
       </div>
 
       {/* 移动端汉堡按钮 */}
-      <div className={`fixed top-4 left-4 z-50 md:hidden transition-all duration-500 ${
+      <div className={`fixed top-4 ${isSidebarRight ? 'right-4' : 'left-4'} z-50 md:hidden transition-all duration-500 ${
         isScrolled ? 'opacity-0 -translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'
       }`}>
         <button
@@ -394,7 +395,7 @@ export default function Home() {
       </div>
 
       {/* 桌面端侧边栏 */}
-      <aside className={`hidden md:flex fixed left-0 top-0 bottom-0 z-30 flex-col transition-all duration-300 ease-in-out ${sidebarWidth}`}>
+      <aside className={`hidden md:flex fixed ${isSidebarRight ? 'right-0' : 'left-0'} top-0 bottom-0 z-30 flex-col transition-all duration-300 ease-in-out ${sidebarWidth}`}>
         {renderSidebarContent(false)}
       </aside>
 
@@ -406,15 +407,20 @@ export default function Home() {
         onClick={() => setIsMobileSidebarOpen(false)}
       />
       <aside
-        className={`fixed left-0 top-1/2 -translate-y-1/2 z-[70] w-[280px] max-w-[85vw] px-3 md:hidden transition-transform duration-300 ease-out ${
-          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed ${isSidebarRight ? 'right-3 sm:right-4' : 'left-3 sm:left-4'} top-1/2 -translate-y-1/2 z-[70] w-[280px] max-w-[85vw] md:hidden transition-transform duration-300 ease-out ${
+          isMobileSidebarOpen
+            ? 'translate-x-0'
+            : (isSidebarRight ? 'translate-x-[calc(100%+24px)]' : '-translate-x-[calc(100%+24px)]')
         }`}
-        style={{ maxHeight: '90vh', overflowY: 'auto' }}
+        style={{ maxHeight: '85vh' }}
       >
-        <div className="relative">
+        <div className="relative w-full h-full">
+          {/* 关闭按钮：侧边栏在右侧时居左上内侧，在左侧时居右上内侧，解决截断问题并适配左右位置 */}
           <button
             onClick={() => setIsMobileSidebarOpen(false)}
-            className="absolute -top-2 -right-2 z-10 w-8 h-8 rounded-full bg-white/10 backdrop-blur-md text-white/70 hover:text-white flex items-center justify-center border border-white/10 cursor-pointer"
+            className={`absolute -top-3 ${
+              isSidebarRight ? '-left-2.5' : '-right-2.5'
+            } z-20 w-9 h-9 rounded-full bg-slate-900/95 hover:bg-slate-800 text-white flex items-center justify-center border border-white/20 shadow-2xl backdrop-blur-xl transition-all active:scale-95 cursor-pointer`}
             title="关闭菜单"
           >
             <X className="w-4 h-4" />
@@ -423,34 +429,23 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* 右侧主内容区 */}
+      {/* 主内容区 */}
       <div
         className={`relative z-10 flex min-h-screen transition-all duration-300 ${
-          !isMobile && (isCollapsed ? 'md:pl-[72px]' : 'md:pl-[230px]')
+          !isMobile && (
+            isSidebarRight
+              ? (isCollapsed ? 'md:pr-[72px]' : 'md:pr-[230px]')
+              : (isCollapsed ? 'md:pl-[72px]' : 'md:pl-[230px]')
+          )
         } w-full`}
         style={{ minWidth: 0 }}
       >
         <main
           className={`flex-1 flex flex-col items-center justify-start min-h-screen w-full ${
-            isMobile ? 'px-3 pt-20' : 'px-4 sm:px-6 pt-16 sm:pt-24'
+            isMobile ? 'px-3 pt-12 sm:pt-14' : 'px-4 sm:px-6 pt-8 sm:pt-12'
           }`}
           style={{ minWidth: 0 }}
         >
-          {/* 移动端顶部标题 */}
-          {isMobile && (
-            <header className="text-center mb-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              <a
-                href="https://navdocs.072199.xyz/"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-bold tracking-[0.4em] text-white/40 hover:text-white/80 uppercase no-underline transition-colors"
-                title={t.docsTooltip}
-              >
-                {settings.siteName}
-              </a>
-            </header>
-          )}
-
           {/* 小组件区域 */}
           {widgets && widgets.length > 0 && (
             <div
@@ -491,7 +486,7 @@ export default function Home() {
           )}
 
           {/* 书签分组 */}
-          <div className={`w-full flex flex-col pb-24 px-0 sm:px-1 ${isMobile ? 'gap-10' : 'gap-14'}`}>
+          <div className={`w-full max-w-7xl flex flex-col pb-24 px-0 sm:px-1 ${isMobile ? 'gap-10' : 'gap-14'}`}>
             {visibleCategories.length === 0 ? (
               <div className="text-center text-white/40 text-base py-20 animate-fade-in">
                 该分类下暂无内容
@@ -504,7 +499,7 @@ export default function Home() {
                   style={{ animationDelay: `${0.4 + catIndex * 0.1}s` }}
                 >
                   <h2 className={`font-bold uppercase tracking-[0.2em] text-white/60 flex items-center gap-3 ${
-                    isMobile ? 'text-sm px-1 mb-4' : 'text-base sm:text-lg px-3 mb-6'
+                    isMobile ? 'text-sm px-1 mb-4' : 'text-base sm:text-lg px-2 mb-6'
                   }`}>
                     {renderIcon(category.icon, undefined, 'w-5 h-5')}
                     {category.title}
@@ -512,7 +507,14 @@ export default function Home() {
                   </h2>
 
                   {/* 卡片列表 */}
-                  <div className={`flex flex-wrap w-full min-w-0 ${isMobile ? 'gap-3' : 'gap-4 sm:gap-5 px-1'}`}>
+                  <div
+                    className={`grid w-full min-w-0 ${isMobile ? 'gap-3' : 'gap-4 sm:gap-5 px-1'}`}
+                    style={{
+                      gridTemplateColumns: isMobile
+                        ? 'repeat(2, minmax(0, 1fr))'
+                        : `repeat(auto-fill, minmax(${baseCardWidth}px, 1fr))`,
+                    }}
+                  >
                     {category.bookmarks.map((bookmark) => (
                       <a
                         key={bookmark.id}
@@ -524,9 +526,8 @@ export default function Home() {
                           isMobile ? 'p-3' : 'p-3 sm:p-4'
                         }`}
                         style={{
-                          width: typeof cardWidth === 'number' ? `${cardWidth}px` : cardWidth,
                           height: `${cardHeight}px`,
-                          maxWidth: '100%',
+                          width: '100%',
                         }}
                       >
                         <div

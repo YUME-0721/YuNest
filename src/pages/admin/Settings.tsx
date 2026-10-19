@@ -2,9 +2,9 @@
  * 个性化设置页面
  */
 
-import React, { useState, useRef } from 'react';
-import { useData, PRESET_SEARCH_ENGINES, DEFAULT_SETTINGS, type Bookmark } from '../../context/DataContext.tsx';
-import { Settings as SettingsIcon, Image as ImageIcon, Search, CheckCircle, Upload, RefreshCw, Clock, Globe, LayoutGrid, AlarmClock, CloudSun, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Eye, HelpCircle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useData, PRESET_SEARCH_ENGINES, DEFAULT_SETTINGS, type Bookmark, type Settings as SettingsType } from '../../context/DataContext.tsx';
+import { Settings as SettingsIcon, Image as ImageIcon, Search, CheckCircle, Upload, RefreshCw, Clock, Globe, LayoutGrid, AlarmClock, CloudSun, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Eye, HelpCircle, PanelLeft, PanelRight } from 'lucide-react';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 import ConfirmModal from '../../components/ConfirmModal.tsx';
 
@@ -16,6 +16,27 @@ export default function Settings() {
   const [previewUrl, setPreviewUrl] = useState(state.settings.wallpaperUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+
+  // 外部状态发生变化时（如重置或云同步）同步至本组件
+  useEffect(() => {
+    setLocalSettings(state.settings);
+  }, [state.settings]);
+
+  // 实时更新并持久化设置
+  const handleUpdate = (patch: Partial<SettingsType>) => {
+    setLocalSettings((prev) => {
+      const next = { ...prev, ...patch };
+      updateSettings(next);
+      return next;
+    });
+    setSaved(true);
+  };
+
+  useEffect(() => {
+    if (!saved) return;
+    const timer = setTimeout(() => setSaved(false), 2000);
+    return () => clearTimeout(timer);
+  }, [saved]);
 
   // 小组件模态框状态
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
@@ -56,19 +77,16 @@ export default function Settings() {
     reorderWidgets(index, targetIndex);
   };
 
-  const handleSave = () => {
-    updateSettings(localSettings);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
   const handleReset = () => {
     setIsResetModalOpen(true);
   };
 
   const confirmReset = () => {
+    updateSettings(DEFAULT_SETTINGS);
     setLocalSettings(DEFAULT_SETTINGS);
     setPreviewUrl(DEFAULT_SETTINGS.wallpaperUrl);
+    setIsResetModalOpen(false);
+    setSaved(true);
   };
 
   /** 处理本地壁纸上传——转为 base64 存入 localStorage */
@@ -134,7 +152,7 @@ export default function Settings() {
                 className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors"
                 placeholder={t.siteNamePlaceholder}
                 value={localSettings.siteName}
-                onChange={(e) => setLocalSettings({ ...localSettings, siteName: e.target.value })}
+                onChange={(e) => handleUpdate({ siteName: e.target.value })}
               />
             </div>
             <div className="flex flex-col gap-4">
@@ -149,7 +167,7 @@ export default function Settings() {
                     key={engine.id}
                     type="button"
                     onClick={() => {
-                      setLocalSettings({ ...localSettings, searchEngine: engine.url });
+                      handleUpdate({ searchEngine: engine.url });
                     }}
                     className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all shrink-0 min-w-[72px] ${
                       localSettings.searchEngine === engine.url
@@ -170,7 +188,7 @@ export default function Settings() {
                   type="button"
                   onClick={() => {
                     if (PRESET_SEARCH_ENGINES.some(e => e.url === localSettings.searchEngine)) {
-                      setLocalSettings({ ...localSettings, searchEngine: '' });
+                      handleUpdate({ searchEngine: '' });
                     }
                   }}
                   className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all shrink-0 min-w-[72px] ${
@@ -201,7 +219,7 @@ export default function Settings() {
                     className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm"
                     placeholder="例如: https://www.google.com/search?q="
                     value={localSettings.searchEngine}
-                    onChange={(e) => setLocalSettings({ ...localSettings, searchEngine: e.target.value })}
+                    onChange={(e) => handleUpdate({ searchEngine: e.target.value })}
                   />
                   <p className="text-xs text-slate-400">{t.searchEngineDesc}</p>
                 </div>
@@ -226,7 +244,7 @@ export default function Settings() {
               </div>
               <button
                 type="button"
-                onClick={() => setLocalSettings({ ...localSettings, authRedirect: !localSettings.authRedirect })}
+                onClick={() => handleUpdate({ authRedirect: !localSettings.authRedirect })}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
                   localSettings.authRedirect ? 'bg-[#ec5b13]' : 'bg-slate-200'
                 }`}
@@ -256,12 +274,49 @@ export default function Settings() {
               </label>
               <select
                 value={localSettings.language}
-                onChange={(e) => setLocalSettings({ ...localSettings, language: e.target.value as any })}
+                onChange={(e) => handleUpdate({ language: e.target.value as any })}
                 className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm font-medium"
               >
                 <option value="zh-CN">简体中文 (Chinese Simplified)</option>
                 <option value="en-US">English (United States)</option>
               </select>
+            </div>
+
+            {/* 侧边栏位置调节 */}
+            <div className="flex flex-col gap-3 pt-6 border-t border-slate-100">
+              <div>
+                <label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
+                  <PanelLeft className="w-4 h-4 text-slate-400" />
+                  {t.sidebarPositionLabel}
+                </label>
+                <p className="text-xs text-slate-400 mt-1">{t.sidebarPositionDesc}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <button
+                  type="button"
+                  onClick={() => handleUpdate({ sidebarPosition: 'left' })}
+                  className={`flex items-center justify-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    (localSettings.sidebarPosition || 'left') === 'left'
+                      ? 'bg-[#ec5b13]/10 border-[#ec5b13] text-[#ec5b13] ring-1 ring-[#ec5b13] font-semibold shadow-sm'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100/60 font-medium'
+                  }`}
+                >
+                  <PanelLeft className="w-5 h-5 shrink-0" />
+                  <span className="text-sm">{t.sidebarLeft}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleUpdate({ sidebarPosition: 'right' })}
+                  className={`flex items-center justify-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    localSettings.sidebarPosition === 'right'
+                      ? 'bg-[#ec5b13]/10 border-[#ec5b13] text-[#ec5b13] ring-1 ring-[#ec5b13] font-semibold shadow-sm'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100/60 font-medium'
+                  }`}
+                >
+                  <PanelRight className="w-5 h-5 shrink-0" />
+                  <span className="text-sm">{t.sidebarRight}</span>
+                </button>
+              </div>
             </div>
 
             {/* ===== 首页布局：卡片高度 & 卡片宽度 ===== */}
@@ -279,7 +334,7 @@ export default function Settings() {
                     max={200}
                     step={5}
                     value={localSettings.cardHeight || 80}
-                    onChange={(e) => setLocalSettings({ ...localSettings, cardHeight: Number(e.target.value) } as any)}
+                    onChange={(e) => handleUpdate({ cardHeight: Number(e.target.value) })}
                     className="flex-1 accent-[#ec5b13] cursor-pointer"
                   />
                   <div className="flex items-center gap-1">
@@ -291,7 +346,7 @@ export default function Settings() {
                       value={localSettings.cardHeight || 80}
                       onChange={(e) => {
                         const v = Number(e.target.value);
-                        setLocalSettings({ ...localSettings, cardHeight: isNaN(v) ? 80 : Math.min(200, Math.max(60, v)) } as any);
+                        handleUpdate({ cardHeight: isNaN(v) ? 80 : Math.min(200, Math.max(60, v)) });
                       }}
                       className="w-20 text-center text-base font-mono font-bold text-[#ec5b13] bg-[#ec5b13]/10 rounded-lg py-1 outline-none border border-[#ec5b13]/20 focus:border-[#ec5b13]"
                     />
@@ -313,7 +368,7 @@ export default function Settings() {
                     max={400}
                     step={10}
                     value={localSettings.cardWidth || 240}
-                    onChange={(e) => setLocalSettings({ ...localSettings, cardWidth: Number(e.target.value) } as any)}
+                    onChange={(e) => handleUpdate({ cardWidth: Number(e.target.value) })}
                     className="flex-1 accent-[#ec5b13] cursor-pointer"
                   />
                   <div className="flex items-center gap-1">
@@ -325,7 +380,7 @@ export default function Settings() {
                       value={localSettings.cardWidth || 240}
                       onChange={(e) => {
                         const v = Number(e.target.value);
-                        setLocalSettings({ ...localSettings, cardWidth: isNaN(v) ? 240 : Math.min(400, Math.max(120, v)) } as any);
+                        handleUpdate({ cardWidth: isNaN(v) ? 240 : Math.min(400, Math.max(120, v)) });
                       }}
                       className="w-20 text-center text-base font-mono font-bold text-[#ec5b13] bg-[#ec5b13]/10 rounded-lg py-1 outline-none border border-[#ec5b13]/20 focus:border-[#ec5b13]"
                     />
@@ -353,7 +408,7 @@ export default function Settings() {
               </label>
               <select
                 value={localSettings.widgetAlignment || 'center'}
-                onChange={(e) => setLocalSettings({ ...localSettings, widgetAlignment: e.target.value as any })}
+                onChange={(e) => handleUpdate({ widgetAlignment: e.target.value as any })}
                 className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm font-medium"
               >
                 <option value="left">{t.alignLeft || '左对齐'}</option>
@@ -370,7 +425,7 @@ export default function Settings() {
               <select
                 className="w-full rounded-xl border-slate-200 bg-slate-50 focus:ring-[#ec5b13] focus:border-[#ec5b13] px-4 py-3 outline-none border transition-colors text-sm font-medium cursor-pointer"
                 value={localSettings.timezone}
-                onChange={(e) => setLocalSettings({ ...localSettings, timezone: e.target.value })}
+                onChange={(e) => handleUpdate({ timezone: e.target.value })}
               >
                 <option value="">{t.timezoneSystem}</option>
                 <option value="Asia/Shanghai">中国/北京 (Asia/Shanghai)</option>
@@ -518,30 +573,26 @@ export default function Settings() {
           </div>
         </section>
 
-        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-4 sm:-mx-8 px-4 sm:px-8 py-4 sm:py-6 flex justify-end gap-3 sm:gap-4 mt-8 bg-white/80 backdrop-blur-md border-t border-slate-100 sm:bg-transparent sm:backdrop-blur-none sm:border-0 pointer-events-none">
+        <footer className="sticky bottom-0 left-0 right-0 z-40 -mx-4 sm:-mx-8 px-4 sm:px-8 py-3.5 sm:py-4 flex items-center justify-between gap-4 mt-8 bg-white/90 backdrop-blur-md border-t border-slate-100 shadow-sm pointer-events-none">
+          <div className="flex items-center gap-2 text-xs font-medium pointer-events-auto">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all duration-300 ${
+                saved
+                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/80 shadow-sm'
+                  : 'bg-slate-50 text-slate-400 border border-slate-100'
+              }`}
+            >
+              <CheckCircle className={`w-3.5 h-3.5 ${saved ? 'text-emerald-500 animate-pulse' : 'text-slate-400'}`} />
+              <span>{saved ? (t.saved || '已保存') : (t.autoSavedTip || '设置已实时自动保存')}</span>
+            </span>
+          </div>
+
           <button
             type="button"
             onClick={handleReset}
-            className="flex-1 sm:flex-none px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 transition-all shadow-sm pointer-events-auto text-sm sm:text-base"
+            className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 active:scale-95 transition-all shadow-sm pointer-events-auto text-xs sm:text-sm"
           >
             {t.reset}
-          </button>
-          <button
-            onClick={handleSave}
-            className={`flex-[2] sm:flex-none px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl font-bold shadow-2xl transition-all flex items-center justify-center gap-2 pointer-events-auto text-sm sm:text-base ${
-              saved
-                ? 'bg-green-500 text-white shadow-green-500/30'
-                : 'bg-[#ec5b13] text-white shadow-[#ec5b13]/30 hover:scale-[1.05] active:scale-[0.95]'
-            }`}
-          >
-            {saved ? (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                {t.saved}
-              </>
-            ) : (
-              t.saveSettings
-            )}
           </button>
         </footer>
       </div>

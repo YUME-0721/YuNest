@@ -41,6 +41,8 @@ export const TRANSLATIONS = {
 
     // 个性化设置
     basicSettings: '基本设置',
+    autoSavedTip: '设置已实时自动保存',
+    autoSavedStatus: '已自动保存',
     siteNameLabel: '网站名称',
     siteNamePlaceholder: '请输入网站名称',
     searchEngineLabel: '默认搜索引擎',
@@ -66,6 +68,12 @@ export const TRANSLATIONS = {
     alignLeft: '左对齐',
     alignCenter: '居中对齐',
     alignRight: '右对齐',
+
+    // ===== 侧边栏位置 =====
+    sidebarPositionLabel: '侧边栏位置',
+    sidebarPositionDesc: '设置主页分类侧边栏显示在左侧或右侧',
+    sidebarLeft: '左侧',
+    sidebarRight: '右侧',
 
     // ===== 卡片尺寸 & 每行数量 =====
     cardHeightLabel: '卡片高度',
@@ -237,6 +245,8 @@ export const TRANSLATIONS = {
 
     // Settings
     basicSettings: 'General Settings',
+    autoSavedTip: 'Changes are automatically saved in real time',
+    autoSavedStatus: 'Auto-saved',
     siteNameLabel: 'Site Name',
     siteNamePlaceholder: 'Enter site name',
     searchEngineLabel: 'Search Engine',
@@ -262,6 +272,12 @@ export const TRANSLATIONS = {
     alignLeft: 'Left Align',
     alignCenter: 'Center Align',
     alignRight: 'Right Align',
+
+    // ===== Sidebar Position =====
+    sidebarPositionLabel: 'Sidebar Position',
+    sidebarPositionDesc: 'Choose whether the category sidebar appears on the left or right side',
+    sidebarLeft: 'Left',
+    sidebarRight: 'Right',
 
     // ===== Card Size =====
     cardHeightLabel: 'Card Height',
