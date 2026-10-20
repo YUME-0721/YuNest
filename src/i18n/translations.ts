@@ -36,8 +36,16 @@ export const TRANSLATIONS = {
     navPersonalization: '个性化设置',
     navBookmarks: '管理标签',
     navWallpaper: '壁纸与背景',
+    navWidgets: '小组件管理',
     navBackup: '备份与还原',
     navFeedback: '关于与反馈',
+
+    // 小组件管理页
+    widgetSettings: '小组件管理',
+    widgetSettingsDesc: '配置首页展示的时钟、天气、搜索等扩展小组件',
+    manageWidgets: '小组件列表',
+    widgetBackgroundLabel: '卡片背景',
+    noWidgets: '暂无小组件，点击右上角添加',
 
     // 个性化设置
     basicSettings: '基本设置',
@@ -75,9 +83,15 @@ export const TRANSLATIONS = {
     sidebarLeft: '左侧',
     sidebarRight: '右侧',
 
-    // ===== 卡片尺寸 & 每行数量 =====
+    // ===== 卡片尺寸设置 =====
+    layoutCardSizeTitle: '展开卡片模式尺寸',
+    layoutCardSizeDesc: '控制“展开卡片”模式下的卡片显示尺寸（适合包含完整描述与外链图标）',
+    layoutGridSizeTitle: '紧凑宫格模式尺寸',
+    layoutGridSizeDesc: '控制“紧凑宫格”模式下的卡片显示尺寸（适合桌面图标密集排列）',
     cardHeightLabel: '卡片高度',
     cardWidthLabel: '卡片宽度',
+    gridCardHeightLabel: '宫格高度',
+    gridCardWidthLabel: '宫格宽度',
     cardSizeDesc: '控制前台书签卡片的显示尺寸（像素）',
 
     // 管理标签
@@ -240,8 +254,16 @@ export const TRANSLATIONS = {
     navPersonalization: 'Personalization',
     navBookmarks: 'Bookmarks',
     navWallpaper: 'Wallpaper',
+    navWidgets: 'Widgets',
     navBackup: 'Backup & Sync',
     navFeedback: 'Feedback',
+
+    // Widgets page
+    widgetSettings: 'Widget Manager',
+    widgetSettingsDesc: 'Configure clock, weather, search, and other widgets for your home page',
+    manageWidgets: 'Widget List',
+    widgetBackgroundLabel: 'Card Background',
+    noWidgets: 'No widgets yet. Click the button above to add one.',
 
     // Settings
     basicSettings: 'General Settings',
@@ -279,9 +301,15 @@ export const TRANSLATIONS = {
     sidebarLeft: 'Left',
     sidebarRight: 'Right',
 
-    // ===== Card Size =====
+    // ===== Card Size Settings =====
+    layoutCardSizeTitle: 'Expanded Card Size',
+    layoutCardSizeDesc: 'Control display size for expanded card layout (with descriptions and links)',
+    layoutGridSizeTitle: 'Compact Grid Size',
+    layoutGridSizeDesc: 'Control display size for compact grid layout (app drawer icon style)',
     cardHeightLabel: 'Card Height',
     cardWidthLabel: 'Card Width',
+    gridCardHeightLabel: 'Grid Height',
+    gridCardWidthLabel: 'Grid Width',
     cardSizeDesc: 'Control the display size of bookmark cards on the front page (px)',
 
     // Bookmarks

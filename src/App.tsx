@@ -10,6 +10,7 @@ import AdminLayout from './pages/admin/AdminLayout.tsx';
 import Settings from './pages/admin/Settings.tsx';
 import Bookmarks from './pages/admin/Bookmarks.tsx';
 import Wallpaper from './pages/admin/Wallpaper.tsx';
+import Widgets from './pages/admin/Widgets.tsx';
 import Backup from './pages/admin/Backup.tsx';
 import Feedback from './pages/admin/Feedback.tsx';
 
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="settings" element={<Settings />} />
             <Route path="bookmarks" element={<Bookmarks />} />
             <Route path="wallpaper" element={<Wallpaper />} />
+            <Route path="widgets" element={<Widgets />} />
             <Route path="backup" element={<Backup />} />
             <Route path="feedback" element={<Feedback />} />
           </Route>

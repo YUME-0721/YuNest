@@ -49,10 +49,14 @@ export interface Settings {
   githubSync?: boolean;
   widgetAlignment?: 'left' | 'center' | 'right';
   widgetBackground?: boolean;
-  /** 前台书签卡片高度（px，60-200） */
+  /** 前台书签展开卡片高度（px，60-200） */
   cardHeight?: number;
-  /** 前台书签卡片宽度（px，120-400） */
+  /** 前台书签展开卡片宽度（px，120-400） */
   cardWidth?: number;
+  /** 前台书签紧凑宫格高度（px，50-200） */
+  gridCardHeight?: number;
+  /** 前台书签紧凑宫格宽度（px，50-200） */
+  gridCardWidth?: number;
   /** 侧边栏位置（左侧或右侧） */
   sidebarPosition?: 'left' | 'right';
 }
@@ -95,6 +99,8 @@ export const DEFAULT_SETTINGS: Settings = {
   // ===== 前台卡片尺寸 =====
   cardHeight: 80,
   cardWidth: 240,
+  gridCardHeight: 96,
+  gridCardWidth: 96,
   sidebarPosition: 'left',
 };
 

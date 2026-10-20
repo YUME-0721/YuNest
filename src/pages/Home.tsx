@@ -107,7 +107,7 @@ export default function Home() {
     }
   }, [isCollapsed]);
 
-  // ====== 前台卡片配置（长宽独立，移动端自动适配） ======
+  // ====== 展开卡片配置（长宽独立，移动端自动适配） ======
   const isSidebarRight = settings.sidebarPosition === 'right';
   const baseCardHeight = settings.cardHeight || 80;
   const baseCardWidth = settings.cardWidth || 240;
@@ -124,6 +124,18 @@ export default function Home() {
   const descFontPx = isMobile
     ? Math.max(10, Math.round(cardHeight * 0.13))
     : Math.max(11, Math.round(cardHeight * 0.14));
+
+  // ====== 紧凑宫格配置（长宽独立，移动端自动适配） ======
+  const baseGridCardHeight = settings.gridCardHeight || 96;
+  const baseGridCardWidth = settings.gridCardWidth || 96;
+
+  const gridCardHeight = isMobile ? Math.max(68, Math.round(baseGridCardHeight * 0.85)) : baseGridCardHeight;
+  const gridCardWidth = isMobile ? Math.max(68, Math.round(baseGridCardWidth * 0.85)) : baseGridCardWidth;
+
+  const gridIconBoxSize = Math.max(26, Math.round(gridCardHeight * 0.46));
+  const gridTitleFontPx = isMobile
+    ? Math.max(11, Math.min(13, Math.round(gridCardHeight * 0.13)))
+    : Math.max(11, Math.min(14, Math.round(gridCardHeight * 0.14)));
 
   const sidebarCategories = useMemo(() => {
     return categories
@@ -506,66 +518,113 @@ export default function Home() {
                     <span className="text-white/25 font-medium text-sm">({category.bookmarks.length})</span>
                   </h2>
 
-                  {/* 卡片列表 */}
-                  <div
-                    className={`grid w-full min-w-0 ${isMobile ? 'gap-3' : 'gap-4 sm:gap-5 px-1'}`}
-                    style={{
-                      gridTemplateColumns: isMobile
-                        ? 'repeat(2, minmax(0, 1fr))'
-                        : `repeat(auto-fill, minmax(${baseCardWidth}px, 1fr))`,
-                    }}
-                  >
-                    {category.bookmarks.map((bookmark) => (
-                      <a
-                        key={bookmark.id}
-                        href={bookmark.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onContextMenu={(e) => handleContextMenu(e, bookmark)}
-                        className={`flex items-center rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group min-w-0 ${
-                          isMobile ? 'p-3' : 'p-3 sm:p-4'
-                        }`}
-                        style={{
-                          height: `${cardHeight}px`,
-                          width: '100%',
-                        }}
-                      >
-                        <div
-                          className="rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors duration-300 shrink-0"
+                  {/* 书签列表：根据分组展示模式分别渲染紧凑宫格或展开卡片 */}
+                  {category.layout === 'grid' ? (
+                    <div
+                      className={`grid w-full min-w-0 ${isMobile ? 'gap-2.5 sm:gap-3' : 'gap-3 sm:gap-4 px-1'}`}
+                      style={{
+                        gridTemplateColumns: isMobile
+                          ? `repeat(auto-fill, minmax(${gridCardWidth}px, 1fr))`
+                          : `repeat(auto-fill, minmax(${baseGridCardWidth}px, 1fr))`,
+                      }}
+                    >
+                      {category.bookmarks.map((bookmark) => (
+                        <a
+                          key={bookmark.id}
+                          href={bookmark.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onContextMenu={(e) => handleContextMenu(e, bookmark)}
+                          className="flex flex-col items-center justify-center rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group min-w-0 p-2 text-center"
                           style={{
-                            width: `${iconBoxSize}px`,
-                            height: `${iconBoxSize}px`,
-                            marginRight: isMobile ? '10px' : '12px',
+                            height: `${gridCardHeight}px`,
+                            width: '100%',
                           }}
+                          title={bookmark.description ? `${bookmark.title} - ${bookmark.description}` : bookmark.title}
                         >
-                          {renderIcon(
-                            bookmark.icon,
-                            bookmark.url,
-                            cardHeight < 70 ? 'w-4 h-4' : cardHeight < 110 ? 'w-5 h-5' : 'w-6 h-6'
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className="font-bold text-white group-hover:text-white transition-colors duration-300 truncate"
-                            style={{ fontSize: `${titleFontPx}px` }}
+                          <div
+                            className="rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shrink-0"
+                            style={{
+                              width: `${gridIconBoxSize}px`,
+                              height: `${gridIconBoxSize}px`,
+                            }}
+                          >
+                            {renderIcon(
+                              bookmark.icon,
+                              bookmark.url,
+                              gridCardHeight < 75 ? 'w-5 h-5' : gridCardHeight < 100 ? 'w-7 h-7' : gridCardHeight < 130 ? 'w-8 h-8' : 'w-10 h-10'
+                            )}
+                          </div>
+                          <span
+                            className="font-medium text-white/80 group-hover:text-white transition-colors duration-300 truncate w-full px-1 mt-1 leading-tight"
+                            style={{ fontSize: `${gridTitleFontPx}px` }}
                           >
                             {bookmark.title}
-                          </p>
-                          {bookmark.description && cardHeight >= 70 && (
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <div
+                      className={`grid w-full min-w-0 ${isMobile ? 'gap-3' : 'gap-4 sm:gap-5 px-1'}`}
+                      style={{
+                        gridTemplateColumns: isMobile
+                          ? 'repeat(2, minmax(0, 1fr))'
+                          : `repeat(auto-fill, minmax(${baseCardWidth}px, 1fr))`,
+                      }}
+                    >
+                      {category.bookmarks.map((bookmark) => (
+                        <a
+                          key={bookmark.id}
+                          href={bookmark.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onContextMenu={(e) => handleContextMenu(e, bookmark)}
+                          className={`flex items-center rounded-2xl glass hover:bg-white/10 hover:-translate-y-0.5 hover:border-white/15 transition-all duration-300 group min-w-0 ${
+                            isMobile ? 'p-3' : 'p-3 sm:p-4'
+                          }`}
+                          style={{
+                            height: `${cardHeight}px`,
+                            width: '100%',
+                          }}
+                        >
+                          <div
+                            className="rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors duration-300 shrink-0"
+                            style={{
+                              width: `${iconBoxSize}px`,
+                              height: `${iconBoxSize}px`,
+                              marginRight: isMobile ? '10px' : '12px',
+                            }}
+                          >
+                            {renderIcon(
+                              bookmark.icon,
+                              bookmark.url,
+                              cardHeight < 70 ? 'w-4 h-4' : cardHeight < 110 ? 'w-5 h-5' : 'w-6 h-6'
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
                             <p
-                              className="text-white/65 tracking-wide mt-1 truncate"
-                              style={{ fontSize: `${descFontPx}px` }}
+                              className="font-bold text-white group-hover:text-white transition-colors duration-300 truncate"
+                              style={{ fontSize: `${titleFontPx}px` }}
                             >
-                              {bookmark.description}
+                              {bookmark.title}
                             </p>
+                            {bookmark.description && cardHeight >= 70 && (
+                              <p
+                                className="text-white/65 tracking-wide mt-1 truncate"
+                                style={{ fontSize: `${descFontPx}px` }}
+                              >
+                                {bookmark.description}
+                              </p>
+                            )}
+                          </div>
+                          {!isMobile && (
+                            <ExternalLink className="w-4 h-4 text-white/0 group-hover:text-white/30 transition-all duration-300 shrink-0 ml-2" />
                           )}
-                        </div>
-                        {!isMobile && (
-                          <ExternalLink className="w-4 h-4 text-white/0 group-hover:text-white/30 transition-all duration-300 shrink-0 ml-2" />
-                        )}
-                      </a>
-                    ))}
-                  </div>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </section>
               ))
             )}

@@ -34,8 +34,7 @@
         { "id": "b8", "title": "Supabase", "url": "https://supabase.com", "description": "开源 Firebase 替代品", "icon": "" },
         { "id": "b9", "title": "ChatGPT", "url": "https://chat.openai.com", "description": "OpenAI 智能会话", "icon": "" },
         { "id": "b10", "title": "Claude", "url": "https://claude.ai", "description": "Anthropic 智能助手", "icon": "" },
-        { "id": "b11", "title": "Hugging Face", "url": "https://huggingface.co", "description": "AI 开源模型协作平台", "icon": "" },
-        { "id": "b12", "title": "Tailwind CSS", "url": "https://tailwindcss.com", "description": "现代 CSS 样式框架", "icon": "" }
+        { "id": "b11", "title": "Hugging Face", "url": "https://huggingface.co", "description": "AI 开源模型协作平台", "icon": "" }
       ]
     },
     {
@@ -54,7 +53,9 @@
         { "id": "b19", "title": "TVDB", "url": "https://thetvdb.com", "description": "电视节目数据库", "icon": "" },
         { "id": "b20", "title": "IMDb", "url": "https://www.imdb.com", "description": "互联网电影资料库", "icon": "" },
         { "id": "b21", "title": "Bangumi", "url": "https://bgm.tv", "description": "动漫番剧索引与记录", "icon": "" },
-        { "id": "b22", "title": "Douban", "url": "https://www.douban.com", "description": "书影音评分与记录", "icon": "" }
+        { "id": "b22", "title": "Douban", "url": "https://www.douban.com", "description": "书影音评分与记录", "icon": "" },
+        { "id": "b23", "title": "Anime", "url": "https://anime1.cc/", "description": "动画线上看", "icon": "" },
+        { "id": "b24", "title": "X", "url": "https://x.com/", "description": "社交媒体平台", "icon": "" }
       ]
     }
   ],
@@ -81,5 +82,5 @@
       "wrapLine": true
     }
   ],
-  "updatedAt": 1751210456000
+  "updatedAt": 1792467900000
 }

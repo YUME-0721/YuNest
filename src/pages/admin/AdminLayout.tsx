@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
-import { Settings, Tags, RefreshCw, Home, Menu, X, Image as ImageIcon, MessageCircle, BookOpen, ExternalLink, Github } from 'lucide-react';
+import { Settings, Tags, RefreshCw, Home, Menu, X, Image as ImageIcon, MessageCircle, BookOpen, ExternalLink, Github, LayoutGrid } from 'lucide-react';
 import { useData } from '../../context/DataContext.tsx';
 import { TRANSLATIONS } from '../../i18n/translations.ts';
 
@@ -19,6 +19,7 @@ export default function AdminLayout() {
     { to: '/admin/settings', icon: Settings, label: t.navPersonalization },
     { to: '/admin/bookmarks', icon: Tags, label: t.navBookmarks },
     { to: '/admin/wallpaper', icon: ImageIcon, label: t.navWallpaper },
+    { to: '/admin/widgets', icon: LayoutGrid, label: t.navWidgets || '小组件管理' },
     { to: '/admin/backup', icon: RefreshCw, label: t.navBackup },
     { to: '/admin/feedback', icon: MessageCircle, label: t.navFeedback },
   ];
